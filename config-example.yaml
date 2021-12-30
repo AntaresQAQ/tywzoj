@@ -1,0 +1,24 @@
+server:
+  hostname: 127.0.0.1
+  port: 9000
+  trustProxy:
+    - loopback
+service:
+  database:
+    type: mariadb
+    host: 127.0.0.1
+    port: 3306
+    username: tywzoj
+    password: tywzoj
+    database: tywzoj
+  redis: redis://127.0.0.1:6379
+  mail:
+    address: tywzoj@mail.tywzoj.top
+    transport: smtp://username:password@smtp.tywzoj.top:25
+security:
+  crossOrigin:
+    enabled: true
+    whiteList:
+      - http://tywzoj.top
+      - https://tywzoj.top
+  sessionSecret: don't leak this
