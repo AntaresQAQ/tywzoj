@@ -1,12 +1,15 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
   IsEmail,
   IsIn,
+  IsInt,
   IsIP,
   IsOptional,
   IsString,
+  Min,
   ValidateNested,
 } from 'class-validator';
 
@@ -95,6 +98,99 @@ class SecurityConfig {
 
 // END SecurityConfig
 
+// BEGIN ResourceLimitConfig
+
+class ResourceLimitConfig {
+  @IsInt()
+  @Min(0)
+  readonly problemTestdataFiles: number;
+
+  @IsInt()
+  @Min(0)
+  readonly problemTestdataSize: number;
+
+  @IsInt()
+  @Min(0)
+  readonly problemAdditionalFileFiles: number;
+
+  @IsInt()
+  @Min(0)
+  readonly problemAdditionalFileSize: number;
+
+  @IsInt()
+  @Min(0)
+  readonly problemSamplesToRun: number;
+
+  @IsInt()
+  @Min(1)
+  readonly problemTestcases: number;
+
+  @IsInt()
+  @Min(1)
+  readonly problemTimeLimit: number;
+
+  @IsInt()
+  @Min(1)
+  readonly problemMemoryLimit: number;
+
+  @IsInt()
+  @Min(0)
+  readonly submissionFileSize: number;
+}
+
+// END ResourceLimitConfig
+
+// BEGIN QueryLimitConfig
+
+class QueryLimitConfig {
+  @IsInt()
+  @Min(1)
+  readonly problem: number;
+
+  @IsInt()
+  @Min(1)
+  readonly problemSet: number;
+
+  @IsInt()
+  @Min(1)
+  readonly submission: number;
+
+  @IsInt()
+  @Min(1)
+  readonly submissionStatistic: number;
+
+  @IsInt()
+  @Min(1)
+  readonly homework: number;
+
+  @IsInt()
+  @Min(1)
+  readonly contest: number;
+
+  @IsInt()
+  @Min(1)
+  @ApiProperty()
+  readonly discussion: number;
+
+  @IsInt()
+  @Min(1)
+  @ApiProperty()
+  readonly discussionReplies: number;
+
+  @IsInt()
+  @Min(1)
+  readonly searchUser: number;
+
+  @IsInt()
+  @Min(1)
+  readonly searchGroup: number;
+
+  @IsInt()
+  @Min(1)
+  readonly userList: number;
+}
+// END
+
 export class AppConfig {
   @ValidateNested()
   @Type(() => ServerConfig)
@@ -107,4 +203,12 @@ export class AppConfig {
   @ValidateNested()
   @Type(() => SecurityConfig)
   readonly security: SecurityConfig;
+
+  @ValidateNested()
+  @Type(() => ResourceLimitConfig)
+  readonly resourceLimit: ResourceLimitConfig;
+
+  @ValidateNested()
+  @Type(() => QueryLimitConfig)
+  readonly queryLimit: QueryLimitConfig;
 }

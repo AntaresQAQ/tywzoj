@@ -22,3 +22,25 @@ security:
       - http://tywzoj.top
       - https://tywzoj.top
   sessionSecret: don't leak this
+resourceLimit:
+  problemTestdataFiles: 40
+  problemTestdataSize: 134217728
+  problemAdditionalFileFiles: 40
+  problemAdditionalFileSize: 134217728
+  problemSamplesToRun: 10
+  problemTestcases: 20
+  problemTimeLimit: 5000
+  problemMemoryLimit: 2048
+  submissionFileSize: 10485760
+queryLimit:
+  problem: 100
+  problemSet: 30
+  submission: 10
+  submissionStatistic: 10
+  homework: 30
+  contest: 30
+  discussion: 50
+  discussionReplies: 50
+  searchUser: 20
+  searchGroup: 20
+  userList: 100
