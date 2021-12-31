@@ -15,15 +15,16 @@ String.prototype.format = function format(...args) {
   return util.format.call(undefined, this, ...args);
 };
 
+export const appGitRepoInfo = getGitRepoInfo();
+
 async function bootstrap() {
   // Get package info
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const packageInfo = require('../package.json');
-  const gitRepoInfo = getGitRepoInfo();
   const appVersion = `v${packageInfo.version}`;
-  const gitRepoVersion = gitRepoInfo.sha
-    ? ` (Git revision ${gitRepoInfo.sha.substring(0, 8)} on ${moment(
-        gitRepoInfo.committerDate,
+  const gitRepoVersion = appGitRepoInfo.sha
+    ? ` (Git revision ${appGitRepoInfo.sha.substring(0, 8)} on ${moment(
+        appGitRepoInfo.committerDate,
       ).format('YYYY-MM-DD H:mm:ss')})`
     : '';
 
