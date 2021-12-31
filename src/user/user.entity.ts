@@ -1,4 +1,4 @@
-import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, Index, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 import { AuthEntity } from '@/auth/auth.entity';
 
@@ -23,10 +23,15 @@ export class UserEntity {
   id: number;
 
   @Column({ type: 'varchar', length: 24 })
+  @Index({ unique: true })
   username: string;
 
   @Column({ type: 'varchar', length: 255 })
+  @Index({ unique: true })
   email: string;
+
+  @Column({ type: 'boolean', default: false })
+  publicEmail: boolean;
 
   @Column({ type: 'varchar', length: 24, nullable: true })
   nickname: string;
@@ -45,4 +50,12 @@ export class UserEntity {
 
   @OneToOne(() => AuthEntity, auth => auth.user)
   auth: AuthEntity;
+
+  get isAdmin(): boolean {
+    return this.type === UserType.ADMIN;
+  }
+
+  get isManager(): boolean {
+    return this.type === UserType.MANAGER || this.isAdmin;
+  }
 }
