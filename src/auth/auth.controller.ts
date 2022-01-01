@@ -4,6 +4,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { RequestWithSession } from '@/auth/auth.middleware';
 import { AuthService } from '@/auth/auth.service';
 import { CurrentUser } from '@/common/user.decorator';
+import { ConfigService } from '@/config/config.service';
 import { appGitRepoInfo } from '@/main';
 import { UserEntity } from '@/user/user.entity';
 import { UserService } from '@/user/user.service';
@@ -24,6 +25,7 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly authSessionService: AuthSessionService,
     private readonly userService: UserService,
+    private readonly configService: ConfigService,
   ) {}
 
   @Get('getSessionInfo')
@@ -39,6 +41,7 @@ export class AuthController {
         hash: appGitRepoInfo.abbreviatedSha,
         date: appGitRepoInfo.committerDate,
       },
+      preference: this.configService.preferenceConfigToBeSentToUser,
     };
 
     if (user) {

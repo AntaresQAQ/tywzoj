@@ -15,6 +15,8 @@ import {
 
 import { IsPortNumber } from '@/common/validators';
 
+import { ConfigRelation, ConfigRelationType } from './config-relation.decorator';
+
 // BEGIN ServerConfig
 
 class ServerConfig {
@@ -87,6 +89,19 @@ class CrossOriginSecurityConfig {
   readonly whiteList: string[];
 }
 
+class RecaptchaSecurityConfig {
+  @IsString()
+  @IsOptional()
+  readonly secretKey: string;
+
+  @IsBoolean()
+  readonly useRecaptchaNet: boolean;
+
+  @IsString()
+  @IsOptional()
+  readonly proxyUrl: string;
+}
+
 class SecurityConfig {
   @ValidateNested()
   @Type(() => CrossOriginSecurityConfig)
@@ -94,6 +109,10 @@ class SecurityConfig {
 
   @IsString()
   readonly sessionSecret: string;
+
+  @ValidateNested()
+  @Type(() => RecaptchaSecurityConfig)
+  readonly recaptcha: RecaptchaSecurityConfig;
 }
 
 // END SecurityConfig
@@ -169,13 +188,11 @@ class QueryLimitConfig {
 
   @IsInt()
   @Min(1)
-  @ApiProperty()
-  readonly discussion: number;
+  readonly article: number;
 
   @IsInt()
   @Min(1)
-  @ApiProperty()
-  readonly discussionReplies: number;
+  readonly articleReply: number;
 
   @IsInt()
   @Min(1)
@@ -189,7 +206,122 @@ class QueryLimitConfig {
   @Min(1)
   readonly userList: number;
 }
-// END
+
+// END QueryLimitConfig
+
+// BEGIN PreferenceConfig
+
+// These config items will be sent to client
+class SecurityPreferenceConfig {
+  @IsBoolean()
+  @ApiProperty()
+  readonly recaptchaEnabled: boolean;
+
+  @IsString()
+  @IsOptional()
+  @ApiProperty()
+  readonly recaptchaKey: string;
+
+  @IsBoolean()
+  @ApiProperty()
+  readonly requireEmailVerification: boolean;
+}
+
+// These config items will be sent to client
+class PaginationPreferenceConfig {
+  @IsInt()
+  @Min(1)
+  @ConfigRelation('queryLimit.article', ConfigRelationType.LessThanOrEqual)
+  @ApiProperty({ minimum: 1 })
+  readonly homepageNotice: number;
+
+  @IsInt()
+  @Min(1)
+  @ConfigRelation('queryLimit.userList', ConfigRelationType.LessThanOrEqual)
+  @ApiProperty({ minimum: 1 })
+  readonly homepageUserList: number;
+
+  @IsInt()
+  @Min(1)
+  @ConfigRelation('queryLimit.contest', ConfigRelationType.LessThanOrEqual)
+  @ApiProperty({ minimum: 1 })
+  readonly homepageContest: number;
+
+  @IsInt()
+  @Min(1)
+  @ConfigRelation('queryLimit.homework', ConfigRelationType.LessThanOrEqual)
+  @ApiProperty({ minimum: 1 })
+  readonly homepageHomework: number;
+
+  @IsInt()
+  @Min(1)
+  @ConfigRelation('queryLimit.problem', ConfigRelationType.LessThanOrEqual)
+  @ApiProperty({ minimum: 1 })
+  readonly problem: number;
+
+  @IsInt()
+  @Min(1)
+  @ConfigRelation('queryLimit.problemSet', ConfigRelationType.LessThanOrEqual)
+  @ApiProperty({ minimum: 1 })
+  readonly problemSet: number;
+
+  @IsInt()
+  @Min(1)
+  @ConfigRelation('queryLimit.submission', ConfigRelationType.LessThanOrEqual)
+  @ApiProperty({ minimum: 1 })
+  readonly submission: number;
+
+  @IsInt()
+  @Min(1)
+  @ConfigRelation('queryLimit.submissionStatistic', ConfigRelationType.LessThanOrEqual)
+  @ApiProperty({ minimum: 1 })
+  readonly submissionStatistic: number;
+
+  @IsInt()
+  @Min(1)
+  @ConfigRelation('queryLimit.homework', ConfigRelationType.LessThanOrEqual)
+  @ApiProperty({ minimum: 1 })
+  readonly homework: number;
+
+  @IsInt()
+  @Min(1)
+  @ConfigRelation('queryLimit.contest', ConfigRelationType.LessThanOrEqual)
+  @ApiProperty({ minimum: 1 })
+  readonly contest: number;
+
+  @IsInt()
+  @Min(1)
+  @ConfigRelation('queryLimit.article', ConfigRelationType.LessThanOrEqual)
+  @ApiProperty({ minimum: 1 })
+  readonly article: number;
+
+  @IsInt()
+  @Min(1)
+  @ConfigRelation('queryLimit.articleReply', ConfigRelationType.LessThanOrEqual)
+  @ApiProperty({ minimum: 1 })
+  readonly articleReply: number;
+
+  @IsInt()
+  @Min(1)
+  @ConfigRelation('queryLimit.userList', ConfigRelationType.LessThanOrEqual)
+  @ApiProperty({ minimum: 1 })
+  readonly userList: number;
+}
+
+// These config items will be sent to client
+export class PreferenceConfig {
+  @ValidateNested()
+  @Type(() => SecurityPreferenceConfig)
+  @ApiProperty()
+  readonly security: SecurityPreferenceConfig;
+
+  @ValidateNested()
+  @Type(() => PaginationPreferenceConfig)
+  @ApiProperty()
+  readonly pagination: PaginationPreferenceConfig;
+}
+
+// END PreferenceConfig
 
 export class AppConfig {
   @ValidateNested()
@@ -211,4 +343,8 @@ export class AppConfig {
   @ValidateNested()
   @Type(() => QueryLimitConfig)
   readonly queryLimit: QueryLimitConfig;
+
+  @ValidateNested()
+  @Type(() => PreferenceConfig)
+  readonly preference: PreferenceConfig;
 }

@@ -429,6 +429,11 @@
   resolved "https://registry.npmmirror.com/@types/node/download/@types/node-16.11.17.tgz#ae146499772e33fc6382e1880bc567e41a528586"
   integrity sha512-C1vTZME8cFo8uxY2ui41xcynEotVkczIVI5AjLmy5pkpBv/FtG+jhtOlfcPysI8VRVwoOMv6NJm44LGnoMSWkw==
 
+"@types/object-path@^0.11.1":
+  version "0.11.1"
+  resolved "https://registry.npmmirror.com/@types/object-path/download/@types/object-path-0.11.1.tgz#eea5b357518597fc9c0a067ea3147f599fc1514f"
+  integrity sha1-7qWzV1GFl/ycCgZ+oxR/WZ/BUU8=
+
 "@types/parse-json@^4.0.0":
   version "4.0.0"
   resolved "https://registry.npmmirror.com/@types/parse-json/download/@types/parse-json-4.0.0.tgz?cache=0&sync_timestamp=1637269948744&other_urls=https%3A%2F%2Fregistry.npmmirror.com%2F%40types%2Fparse-json%2Fdownload%2F%40types%2Fparse-json-4.0.0.tgz#2f8bb441434d163b35fb8ffdccd7138927ffb8c0"
@@ -2755,6 +2760,11 @@ object-inspect@^1.9.0:
   version "1.12.0"
   resolved "https://registry.npmmirror.com/object-inspect/download/object-inspect-1.12.0.tgz#6e2c120e868fd1fd18cb4f18c31741d0d6e776f0"
   integrity sha512-Ho2z80bVIvJloH+YzRmpZVQe87+qASmBUKZDWgx9cu+KDrX2ZDH/3tMy+gXbZETVGs2M8YdxObOh7XAtim9Y0g==
+
+object-path@^0.11.8:
+  version "0.11.8"
+  resolved "https://registry.nlark.com/object-path/download/object-path-0.11.8.tgz?cache=0&sync_timestamp=1631790191940&other_urls=https%3A%2F%2Fregistry.nlark.com%2Fobject-path%2Fdownload%2Fobject-path-0.11.8.tgz#ed002c02bbdd0070b78a27455e8ae01fc14d4742"
+  integrity sha1-7QAsArvdAHC3iidFXorgH8FNR0I=
 
 on-finished@^2.3.0, on-finished@~2.3.0:
   version "2.3.0"

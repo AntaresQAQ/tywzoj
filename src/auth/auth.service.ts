@@ -3,6 +3,7 @@ import { InjectConnection, InjectRepository } from '@nestjs/typeorm';
 import bcrypt from 'bcrypt';
 import { Connection, Repository } from 'typeorm';
 
+import { ConfigService } from '@/config/config.service';
 import { UserEntity } from '@/user/user.entity';
 import { UserService } from '@/user/user.service';
 
@@ -18,6 +19,8 @@ export class AuthService {
     private readonly authRepository: Repository<AuthEntity>,
     @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
+    @Inject(forwardRef(() => ConfigService))
+    private readonly configService: ConfigService,
   ) {}
 
   private static async hashPassword(password: string): Promise<string> {
@@ -43,6 +46,9 @@ export class AuthService {
     emailVerificationCode: string,
     password: string,
   ): Promise<[error: RegisterResponseError, user: UserEntity]> {
+    if (this.configService.config.preference.security.requireEmailVerification) {
+      // TODO: EmailVerification
+    }
     try {
       let user: UserEntity;
       await this.connection.transaction('READ COMMITTED', async entityManager => {
@@ -57,6 +63,11 @@ export class AuthService {
         auth.password = await AuthService.hashPassword(password);
         await entityManager.save(auth);
       });
+
+      if (this.configService.config.preference.security.requireEmailVerification) {
+        // TODO: EmailVerification
+      }
+
       return [null, user];
     } catch (e) {
       if (!(await this.userService.checkUsernameAvailability(username))) {

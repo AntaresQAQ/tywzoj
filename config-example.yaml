@@ -22,6 +22,10 @@ security:
       - http://tywzoj.top
       - https://tywzoj.top
   sessionSecret: don't leak this
+  recaptcha:
+    secretKey:
+    useRecaptchaNet: false
+    proxyUrl:
 resourceLimit:
   problemTestdataFiles: 40
   problemTestdataSize: 134217728
@@ -39,8 +43,30 @@ queryLimit:
   submissionStatistic: 10
   homework: 30
   contest: 30
-  discussion: 50
-  discussionReplies: 50
+  article: 50
+  articleReply: 50
   searchUser: 20
   searchGroup: 20
   userList: 100
+preference:
+  security:
+    recaptchaEnabled: false
+    recaptchaKey:
+    requireEmailVerification: false
+  pagination:
+    homepageNotice: 10
+    homepageUserList: 20
+    homepageContest: 5
+    homepageHomework: 5
+    problem: 100
+    problemSet: 30
+    submission: 10
+    submissionStatistic: 10
+    homework: 30
+    contest: 30
+    article: 50
+    articleReply: 50
+    searchUser: 20
+    searchGroup: 20
+    userList: 100
+

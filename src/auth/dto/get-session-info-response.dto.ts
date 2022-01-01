@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
+import { PreferenceConfig } from '@/config/config.schema';
 import { UserMetaDto } from '@/user/dto';
 
 export class ServerVersionDto {
@@ -16,4 +17,7 @@ export class GetSessionInfoResponseDto {
 
   @ApiProperty()
   serverVersion: ServerVersionDto;
+
+  @ApiProperty()
+  preference: PreferenceConfig;
 }
