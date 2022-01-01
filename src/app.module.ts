@@ -7,7 +7,6 @@ import { RecaptchaModule } from '@/recaptcha/recaptcha.module';
 import { RedisModule } from '@/redis/redis.module';
 import { UserModule } from '@/user/user.module';
 
-import { AppService } from './app.service';
 import { ErrorFilter } from './error.filter';
 
 @Module({
@@ -19,6 +18,6 @@ import { ErrorFilter } from './error.filter';
     forwardRef(() => AuthModule),
     forwardRef(() => RedisModule),
   ],
-  providers: [AppService, ErrorFilter],
+  providers: [ErrorFilter],
 })
 export class AppModule {}
