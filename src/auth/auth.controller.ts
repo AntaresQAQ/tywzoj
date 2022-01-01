@@ -2,14 +2,14 @@ import { Body, Controller, Get, Post, Query, Req } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Recaptcha } from '@nestlab/google-recaptcha';
 
-import { RequestWithSession } from '@/auth/auth.middleware';
-import { AuthService } from '@/auth/auth.service';
 import { CurrentUser } from '@/common/user.decorator';
 import { ConfigService } from '@/config/config.service';
 import { appGitRepoInfo } from '@/main';
 import { UserEntity } from '@/user/user.entity';
 import { UserService } from '@/user/user.service';
 
+import { RequestWithSession } from './auth.middleware';
+import { AuthService } from './auth.service';
 import { AuthSessionService } from './auth-session.service';
 import {
   GetSessionInfoRequestDto,
