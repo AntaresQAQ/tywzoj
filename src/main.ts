@@ -6,6 +6,8 @@ import getGitRepoInfo from 'git-repo-info';
 import moment from 'moment';
 import util from 'util';
 
+import { RecaptchaFilter } from '@/recaptcha/recaptcha.filter';
+
 import { AppModule } from './app.module';
 import { ConfigService } from './config/config.service';
 import { ErrorFilter } from './error.filter';
@@ -37,7 +39,7 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const configService = app.get(ConfigService);
   app.setGlobalPrefix('api');
-  app.useGlobalFilters(app.get(ErrorFilter));
+  app.useGlobalFilters(app.get(ErrorFilter), app.get(RecaptchaFilter));
   app.useGlobalPipes(
     new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }),
   );
