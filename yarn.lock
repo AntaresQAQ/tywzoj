@@ -246,6 +246,11 @@
   dependencies:
     uuid "8.3.2"
 
+"@nestlab/google-recaptcha@^2.1.2":
+  version "2.1.2"
+  resolved "https://registry.npmmirror.com/@nestlab/google-recaptcha/download/@nestlab/google-recaptcha-2.1.2.tgz#b1bc3ed7f8d44dfc4bf6f2f3c2410bce020eee94"
+  integrity sha1-sbw+1/jUTfxL9vLzwkELzgIO7pQ=
+
 "@nodelib/fs.scandir@2.1.5":
   version "2.1.5"
   resolved "https://registry.nlark.com/@nodelib/fs.scandir/download/@nodelib/fs.scandir-2.1.5.tgz#7619c2eb21b25483f6d167548b4cfd5a7488c3d5"
