@@ -14,6 +14,9 @@ import { AuthSessionService } from './auth-session.service';
 import {
   GetSessionInfoRequestDto,
   GetSessionInfoResponseDto,
+  LoginRequestDto,
+  LoginResponseDto,
+  LoginResponseError,
   RegisterRequestDto,
   RegisterResponseDto,
   RegisterResponseError,
@@ -53,6 +56,43 @@ export class AuthController {
   }
 
   @Recaptcha()
+  @Post('login')
+  @ApiOperation({
+    summary: 'A request to login',
+  })
+  @ApiBearerAuth()
+  async login(
+    @Req() req: RequestWithSession,
+    @CurrentUser() currentUser: UserEntity,
+    @Body() request: LoginRequestDto,
+  ): Promise<LoginResponseDto> {
+    if (currentUser) return { error: LoginResponseError.ALREADY_LOGGED };
+
+    let user: UserEntity;
+
+    if (request.username) {
+      user = await this.userService.findUserByUsername(request.username);
+    } else if (request.email) {
+      user = await this.userService.findUserByEmail(request.email);
+    } else {
+      return { error: LoginResponseError.NO_SUCH_USER };
+    }
+    if (!user) return { error: LoginResponseError.NO_SUCH_USER };
+    const auth = await this.authService.findAuthByUserId(user.id);
+    if (!(await this.authService.checkPassword(auth, request.password))) {
+      return { error: LoginResponseError.WRONG_PASSWORD };
+    }
+    return {
+      token: await this.authSessionService.newSession(
+        user,
+        req.ip,
+        req.headers['user-agent'],
+      ),
+      username: user.username,
+    };
+  }
+
+  @Recaptcha()
   @Post('register')
   @ApiOperation({
     summary: 'A request to register a new user',
@@ -63,11 +103,7 @@ export class AuthController {
     @CurrentUser() currentUser: UserEntity,
     @Body() request: RegisterRequestDto,
   ): Promise<RegisterResponseDto> {
-    if (currentUser) {
-      return {
-        error: RegisterResponseError.ALREADY_LOGGED,
-      };
-    }
+    if (currentUser) return { error: RegisterResponseError.ALREADY_LOGGED };
 
     const [error, user] = await this.authService.register(
       request.username,
