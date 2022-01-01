@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Post, Query, Req } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Recaptcha } from '@nestlab/google-recaptcha';
 
 import { RequestWithSession } from '@/auth/auth.middleware';
 import { AuthService } from '@/auth/auth.service';
@@ -51,6 +52,7 @@ export class AuthController {
     return result;
   }
 
+  @Recaptcha()
   @Post('register')
   @ApiOperation({
     summary: 'A request to register a new user',
