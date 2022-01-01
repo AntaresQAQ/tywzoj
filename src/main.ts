@@ -2,6 +2,7 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { json } from 'express';
 import getGitRepoInfo from 'git-repo-info';
 import moment from 'moment';
 import util from 'util';
@@ -43,6 +44,7 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }),
   );
+  app.use(json({ limit: '1024mb' }));
   app.set('trust proxy', configService.config.server.trustProxy);
 
   // Configure CORS
