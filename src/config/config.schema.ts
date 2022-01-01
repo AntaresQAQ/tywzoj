@@ -102,6 +102,19 @@ class RecaptchaSecurityConfig {
   readonly proxyUrl: string;
 }
 
+class RateLimitSecurityConfig {
+  @IsBoolean()
+  readonly enabled: boolean;
+
+  @IsInt()
+  @IsOptional()
+  readonly maxRequests: number;
+
+  @IsInt()
+  @IsOptional()
+  readonly durationSeconds: number;
+}
+
 class SecurityConfig {
   @ValidateNested()
   @Type(() => CrossOriginSecurityConfig)
@@ -113,6 +126,10 @@ class SecurityConfig {
   @ValidateNested()
   @Type(() => RecaptchaSecurityConfig)
   readonly recaptcha: RecaptchaSecurityConfig;
+
+  @ValidateNested()
+  @Type(() => RateLimitSecurityConfig)
+  readonly rateLimit: RateLimitSecurityConfig;
 }
 
 // END SecurityConfig

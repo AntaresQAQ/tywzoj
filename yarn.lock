@@ -3015,6 +3015,11 @@ range-parser@~1.2.1:
   resolved "https://registry.nlark.com/range-parser/download/range-parser-1.2.1.tgz#3cf37023d199e1c24d1a55b84800c2f3e6468031"
   integrity sha1-PPNwI9GZ4cJNGlW4SADC8+ZGgDE=
 
+rate-limiter-flexible@^2.3.6:
+  version "2.3.6"
+  resolved "https://registry.npmmirror.com/rate-limiter-flexible/download/rate-limiter-flexible-2.3.6.tgz#b1a2549dca91069c8a33d57c08a27262c0356c60"
+  integrity sha512-8DVFOe89rreyut/vzwBI7vgXJynyYoYnH5XogtAKs0F/neAbCTTglXxSJ7fZeZamcFXZDvMidCBvps4KM+1srw==
+
 raw-body@2.4.0:
   version "2.4.0"
   resolved "https://registry.npmmirror.com/raw-body/download/raw-body-2.4.0.tgz?cache=0&sync_timestamp=1637116849434&other_urls=https%3A%2F%2Fregistry.npmmirror.com%2Fraw-body%2Fdownload%2Fraw-body-2.4.0.tgz#a1ce6fb9c9bc356ca52e89256ab59059e13d0332"

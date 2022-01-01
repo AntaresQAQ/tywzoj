@@ -26,6 +26,10 @@ security:
     secretKey:
     useRecaptchaNet: false
     proxyUrl:
+  rateLimit:
+    enabled: false
+    maxRequests: 200
+    durationSeconds: 10
 resourceLimit:
   problemTestdataFiles: 40
   problemTestdataSize: 134217728
