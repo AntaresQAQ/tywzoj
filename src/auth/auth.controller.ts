@@ -17,6 +17,8 @@ import {
   LoginRequestDto,
   LoginResponseDto,
   LoginResponseError,
+  LogoutResponseDto,
+  LogoutResponseError,
   RegisterRequestDto,
   RegisterResponseDto,
   RegisterResponseError,
@@ -90,6 +92,21 @@ export class AuthController {
       ),
       username: user.username,
     };
+  }
+
+  @Post('logout')
+  @ApiOperation({
+    summary: 'A request to logout current session',
+  })
+  @ApiBearerAuth()
+  async logout(@Req() req: RequestWithSession): Promise<LogoutResponseDto> {
+    const sessionKey = req?.session?.sessionKey;
+    if (sessionKey) {
+      await this.authSessionService.endSession(sessionKey);
+      return { status: 'SUCCESS' };
+    } else {
+      return { error: LogoutResponseError.NOT_LOGGED };
+    }
   }
 
   @Recaptcha()
