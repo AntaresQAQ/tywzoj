@@ -18,6 +18,14 @@ export class UserService {
     return await this.userRepository.findOne({ id });
   }
 
+  async findUserByUsername(username: string): Promise<UserEntity> {
+    return await this.userRepository.findOne({ username });
+  }
+
+  async findUserByEmail(email: string): Promise<UserEntity> {
+    return await this.userRepository.findOne({ email });
+  }
+
   private static getUserAvater(user: UserEntity): string {
     return crypto.createHash('md5').update(user.email.trim().toLowerCase()).digest('hex');
   }
