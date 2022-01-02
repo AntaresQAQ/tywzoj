@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { AuthVerificationCodeService } from '@/auth/auth-verification-code.service';
 import { RedisModule } from '@/redis/redis.module';
 import { UserModule } from '@/user/user.module';
 
@@ -22,8 +23,8 @@ import { AuthSessionService } from './auth-session.service';
     forwardRef(() => RedisModule),
     forwardRef(() => UserModule),
   ],
-  exports: [AuthService, AuthSessionService],
-  providers: [AuthService, AuthSessionService],
+  exports: [AuthService, AuthSessionService, AuthVerificationCodeService],
+  providers: [AuthService, AuthSessionService, AuthVerificationCodeService],
   controllers: [AuthController],
 })
 export class AuthModule implements NestModule {

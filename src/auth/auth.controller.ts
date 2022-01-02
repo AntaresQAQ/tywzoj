@@ -12,6 +12,10 @@ import { RequestWithSession } from './auth.middleware';
 import { AuthService } from './auth.service';
 import { AuthSessionService } from './auth-session.service';
 import {
+  AuthVerificationCodeService,
+  VerificationCodeType,
+} from './auth-verification-code.service';
+import {
   GetSessionInfoRequestDto,
   GetSessionInfoResponseDto,
   LoginRequestDto,
@@ -22,6 +26,9 @@ import {
   RegisterRequestDto,
   RegisterResponseDto,
   RegisterResponseError,
+  SendVerificationCodeRequestDto,
+  SendVerificationCodeResponseDto,
+  SendVerificationCodeResponseError,
 } from './dto';
 
 @ApiTags('Auth')
@@ -30,6 +37,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly authSessionService: AuthSessionService,
+    private readonly authVerificationCodeService: AuthVerificationCodeService,
     private readonly userService: UserService,
     private readonly configService: ConfigService,
   ) {}
@@ -138,5 +146,49 @@ export class AuthController {
         req.headers['user-agent'],
       ),
     };
+  }
+
+  @Recaptcha()
+  @Post('sendVerificationCode')
+  @ApiOperation({
+    summary: 'A request to send email verification code',
+  })
+  @ApiBearerAuth()
+  async sendVerificationCode(
+    @Body() request: SendVerificationCodeRequestDto,
+    @CurrentUser() currentUser: UserEntity,
+  ): Promise<SendVerificationCodeResponseDto> {
+    if (!this.configService.config.preference.security.requireEmailVerification) {
+      return {
+        error: SendVerificationCodeResponseError.FAILED_TO_SEND,
+        status: 'Email verification code disabled.',
+      };
+    }
+    if (request.type === VerificationCodeType.Register) {
+      if (currentUser) {
+        return { error: SendVerificationCodeResponseError.ALREADY_LOGGED };
+      }
+      if (!(await this.userService.checkEmailAvailability(request.email))) {
+        return { error: SendVerificationCodeResponseError.DUPLICATE_EMAIL };
+      }
+    } else if (request.type === VerificationCodeType.ChangeEmail) {
+      if (!currentUser) {
+        return { error: SendVerificationCodeResponseError.PERMISSION_DENIED };
+      }
+      if (!(await this.userService.checkEmailAvailability(request.email))) {
+        return { error: SendVerificationCodeResponseError.DUPLICATE_EMAIL };
+      }
+    } else if (request.type === VerificationCodeType.ResetPassword) {
+      const user = await this.userService.findUserByEmail(request.email);
+      if (!user) {
+        return { error: SendVerificationCodeResponseError.NO_SUCH_USER };
+      }
+    }
+
+    // TODO: send email
+
+    const code = await this.authVerificationCodeService.generate(request.email);
+    if (!code) return { error: SendVerificationCodeResponseError.RATE_LIMITED };
+    return { status: 'SUCCESS' };
   }
 }

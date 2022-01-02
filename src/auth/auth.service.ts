@@ -8,6 +8,7 @@ import { UserEntity } from '@/user/user.entity';
 import { UserService } from '@/user/user.service';
 
 import { AuthEntity } from './auth.entity';
+import { AuthVerificationCodeService } from './auth-verification-code.service';
 import { RegisterResponseError } from './dto';
 
 @Injectable()
@@ -17,6 +18,8 @@ export class AuthService {
     private readonly connection: Connection,
     @InjectRepository(AuthEntity)
     private readonly authRepository: Repository<AuthEntity>,
+    @Inject(forwardRef(() => AuthVerificationCodeService))
+    private readonly authVerificationCodeService: AuthVerificationCodeService,
     @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
     @Inject(forwardRef(() => ConfigService))
@@ -43,11 +46,13 @@ export class AuthService {
   async register(
     username: string,
     email: string,
-    emailVerificationCode: string,
+    verificationCode: string,
     password: string,
   ): Promise<[error: RegisterResponseError, user: UserEntity]> {
     if (this.configService.config.preference.security.requireEmailVerification) {
-      // TODO: EmailVerification
+      if (!(await this.authVerificationCodeService.verify(email, verificationCode))) {
+        return [RegisterResponseError.INVALID_EMAIL_VERIFICATION_CODE, null];
+      }
     }
     try {
       let user: UserEntity;
@@ -65,7 +70,7 @@ export class AuthService {
       });
 
       if (this.configService.config.preference.security.requireEmailVerification) {
-        // TODO: EmailVerification
+        await this.authVerificationCodeService.revoke(email, verificationCode);
       }
 
       return [null, user];
