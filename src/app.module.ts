@@ -9,6 +9,7 @@ import {
 import { AuthModule } from '@/auth/auth.module';
 import { ConfigModule } from '@/config/config.module';
 import { DatabaseModule } from '@/database/database.module';
+import { MailModule } from '@/mail/mail.module';
 import { RecaptchaModule } from '@/recaptcha/recaptcha.module';
 import { RedisModule } from '@/redis/redis.module';
 import { UserModule } from '@/user/user.module';
@@ -24,6 +25,7 @@ import { RateLimiterMiddleware } from './rate-limiter.middleware';
     forwardRef(() => UserModule),
     forwardRef(() => AuthModule),
     forwardRef(() => RedisModule),
+    forwardRef(() => MailModule),
   ],
   providers: [ErrorFilter],
 })

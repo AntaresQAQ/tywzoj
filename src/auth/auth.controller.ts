@@ -187,7 +187,10 @@ export class AuthController {
 
     // TODO: send email
 
-    const code = await this.authVerificationCodeService.generate(request.email);
+    const code = await this.authVerificationCodeService.generate(
+      request.type,
+      request.email,
+    );
     if (!code) return { error: SendVerificationCodeResponseError.RATE_LIMITED };
     return { status: 'SUCCESS' };
   }

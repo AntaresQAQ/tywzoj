@@ -8,7 +8,10 @@ import { UserEntity } from '@/user/user.entity';
 import { UserService } from '@/user/user.service';
 
 import { AuthEntity } from './auth.entity';
-import { AuthVerificationCodeService } from './auth-verification-code.service';
+import {
+  AuthVerificationCodeService,
+  VerificationCodeType,
+} from './auth-verification-code.service';
 import { RegisterResponseError } from './dto';
 
 @Injectable()
@@ -50,7 +53,13 @@ export class AuthService {
     password: string,
   ): Promise<[error: RegisterResponseError, user: UserEntity]> {
     if (this.configService.config.preference.security.requireEmailVerification) {
-      if (!(await this.authVerificationCodeService.verify(email, verificationCode))) {
+      if (
+        !(await this.authVerificationCodeService.verify(
+          VerificationCodeType.Register,
+          email,
+          verificationCode,
+        ))
+      ) {
         return [RegisterResponseError.INVALID_EMAIL_VERIFICATION_CODE, null];
       }
     }
@@ -70,7 +79,11 @@ export class AuthService {
       });
 
       if (this.configService.config.preference.security.requireEmailVerification) {
-        await this.authVerificationCodeService.revoke(email, verificationCode);
+        await this.authVerificationCodeService.revoke(
+          VerificationCodeType.Register,
+          email,
+          verificationCode,
+        );
       }
 
       return [null, user];

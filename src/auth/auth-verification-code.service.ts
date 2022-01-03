@@ -7,9 +7,8 @@ import { RedisService } from '@/redis/redis.service';
 const RATE_LIMIT = 60;
 const CODE_VALID_TIME = 60 * 15;
 
-const REDIS_KEY_EMAIL_VERIFICATION_CODE_RATE_LIMIT =
-  'email-verification-code-rate-limit:%s';
-const REDIS_KEY_EMAIL_VERIFICATION_CODE = 'email-verification-code:%s:%s';
+const REDIS_KEY_VERIFICATION_CODE_RATE_LIMIT = 'verification-code-rate-limit:%s:%s'; // type:email
+const REDIS_KEY_VERIFICATION_CODE = 'verification-code:%s:%s:%s'; // type:email:code
 
 export enum VerificationCodeType {
   Register = 'Register',
@@ -30,11 +29,11 @@ export class AuthVerificationCodeService {
     this.generateCode = customAlphabet('1234567890', 6);
   }
 
-  async generate(email: string): Promise<string> {
+  async generate(type: VerificationCodeType, email: string): Promise<string> {
     // If rate limit key already exists it will fail
     if (
       !(await this.redis.set(
-        REDIS_KEY_EMAIL_VERIFICATION_CODE_RATE_LIMIT.format(email),
+        REDIS_KEY_VERIFICATION_CODE_RATE_LIMIT.format(type, email),
         '1',
         'EX',
         RATE_LIMIT,
@@ -47,7 +46,7 @@ export class AuthVerificationCodeService {
     const code = await this.generateCode();
 
     await this.redis.set(
-      REDIS_KEY_EMAIL_VERIFICATION_CODE.format(email, code),
+      REDIS_KEY_VERIFICATION_CODE.format(type, email, code),
       '1',
       'EX',
       CODE_VALID_TIME,
@@ -56,13 +55,17 @@ export class AuthVerificationCodeService {
     return code;
   }
 
-  async verify(email: string, code: string): Promise<boolean> {
+  async verify(
+    type: VerificationCodeType,
+    email: string,
+    code: string,
+  ): Promise<boolean> {
     return !!(await this.redis.get(
-      REDIS_KEY_EMAIL_VERIFICATION_CODE.format(email, code),
+      REDIS_KEY_VERIFICATION_CODE.format(type, email, code),
     ));
   }
 
-  async revoke(email: string, code: string): Promise<void> {
-    await this.redis.del(REDIS_KEY_EMAIL_VERIFICATION_CODE.format(email, code));
+  async revoke(type: VerificationCodeType, email: string, code: string): Promise<void> {
+    await this.redis.del(REDIS_KEY_VERIFICATION_CODE.format(type, email, code));
   }
 }
