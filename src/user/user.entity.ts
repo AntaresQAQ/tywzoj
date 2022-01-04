@@ -49,7 +49,7 @@ export class UserEntity {
   registrationTime: Date;
 
   @OneToOne(() => AuthEntity, auth => auth.user)
-  auth: AuthEntity;
+  auth: Promise<AuthEntity>;
 
   get isAdmin(): boolean {
     return this.type === UserType.ADMIN;

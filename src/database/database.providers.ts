@@ -14,6 +14,7 @@ export const databaseProviders = [
       entities: [`${__dirname}/../**/*.entity{.ts,.js}`],
       logging: !!process.env.TYWZOJ_LOG_SQL,
       synchronize: true,
+      charset: 'utf8mb4',
     }),
     inject: [ConfigService],
   }),
