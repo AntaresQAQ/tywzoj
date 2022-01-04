@@ -5,5 +5,7 @@ export * from './login-response.dto';
 export * from './logout-response.dto';
 export * from './register-request.dto';
 export * from './register-response.dto';
+export * from './reset-password-request.dto';
+export * from './reset-password-response.dto';
 export * from './send-verification-code-request.dto';
 export * from './send-verification-code-response.dto';

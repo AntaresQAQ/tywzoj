@@ -26,6 +26,10 @@ import {
   RegisterRequestDto,
   RegisterResponseDto,
   RegisterResponseError,
+  ResetPasswordRequestDto,
+  ResetPasswordResponseDto,
+  ResetPasswordResponseError,
+  ResetPasswordType,
   SendVerificationCodeRequestDto,
   SendVerificationCodeResponseDto,
   SendVerificationCodeResponseError,
@@ -152,6 +156,7 @@ export class AuthController {
   @Post('sendVerificationCode')
   @ApiOperation({
     summary: 'A request to send email verification code',
+    description: 'Recaptcha required.',
   })
   @ApiBearerAuth()
   async sendVerificationCode(
@@ -185,13 +190,123 @@ export class AuthController {
       }
     }
 
-    // TODO: send email
-
     const code = await this.authVerificationCodeService.generate(
       request.type,
       request.email,
     );
     if (!code) return { error: SendVerificationCodeResponseError.RATE_LIMITED };
+
+    // TODO: send email
+    console.log(code);
+
+    return { status: 'SUCCESS' };
+  }
+
+  @Recaptcha()
+  @Post('resetPassword')
+  @ApiOperation({
+    summary: 'A request to reset password',
+    description: 'Recaptcha required.',
+  })
+  @ApiBearerAuth()
+  async resetPassword(
+    @Req() req: RequestWithSession,
+    @CurrentUser() currentUser: UserEntity,
+    @Body() request: ResetPasswordRequestDto,
+  ): Promise<ResetPasswordResponseDto> {
+    if (request.type === ResetPasswordType.Force) {
+      if (!currentUser) return { error: ResetPasswordResponseError.NOT_LOGGED };
+      const user = await this.userService.findUserByEmail(request.email);
+      if (!user) return { error: ResetPasswordResponseError.NO_SUCH_USER };
+
+      // Only manager can force reset password, except admin
+      if (!currentUser.isManager || user.isAdmin) {
+        return { error: ResetPasswordResponseError.PERMISSION_DENIED };
+      }
+
+      // Force resetting password no need email verification
+
+      // Changing password
+      const auth = await this.authService.findAuthByUserId(user.id);
+      await this.authService.changePassword(auth, request.password);
+
+      // Force resetting password must revoke all sessions
+      await this.authSessionService.revokeAllSessionsExcept(user.id, null);
+    } else if (request.type === ResetPasswordType.Forgetting) {
+      if (currentUser) return { error: ResetPasswordResponseError.ALREADY_LOGGED };
+      const user = await this.userService.findUserByEmail(request.email);
+      if (!user) return { error: ResetPasswordResponseError.NO_SUCH_USER };
+
+      // Forgetting resetting password must require email verification
+      if (
+        !(await this.authVerificationCodeService.verify(
+          VerificationCodeType.ResetPassword,
+          request.email,
+          request.emailVerificationCode,
+        ))
+      ) {
+        return { error: ResetPasswordResponseError.INVALID_EMAIL_VERIFICATION_CODE };
+      }
+
+      // Changing password
+      const auth = await this.authService.findAuthByUserId(user.id);
+      await this.authService.changePassword(auth, request.password);
+
+      // Forgetting resetting password must revoke all sessions
+      await this.authSessionService.revokeAllSessionsExcept(user.id, null);
+
+      // Revoke the verification code after the password changed successfully
+      await this.authVerificationCodeService.revoke(
+        VerificationCodeType.ResetPassword,
+        request.email,
+        request.emailVerificationCode,
+      );
+    } else if (request.type === ResetPasswordType.Common) {
+      const { requireEmailVerification } =
+        this.configService.preferenceConfigToBeSentToUser.security;
+      if (!currentUser) return { error: ResetPasswordResponseError.NOT_LOGGED };
+
+      const auth = await this.authService.findAuthByUserId(currentUser.id);
+
+      // Common resetting password need email verification if required
+      // and need old password if not require email verification
+      if (requireEmailVerification) {
+        if (
+          !(await this.authVerificationCodeService.verify(
+            VerificationCodeType.ResetPassword,
+            currentUser.email,
+            request.emailVerificationCode,
+          ))
+        ) {
+          return { error: ResetPasswordResponseError.INVALID_EMAIL_VERIFICATION_CODE };
+        }
+      } else {
+        if (
+          !request.oldPassword ||
+          !(await this.authService.checkPassword(auth, request.oldPassword))
+        ) {
+          return { error: ResetPasswordResponseError.WRONG_PASSWORD };
+        }
+      }
+
+      // Changing password
+      await this.authService.changePassword(auth, request.password);
+
+      // Common resetting password must revoke all sessions except current session
+      await this.authSessionService.revokeAllSessionsExcept(
+        currentUser.id,
+        req.session.sessionId,
+      );
+
+      // Revoke the verification code after the password changed successfully
+      if (requireEmailVerification) {
+        await this.authVerificationCodeService.revoke(
+          VerificationCodeType.ResetPassword,
+          currentUser.email,
+          request.emailVerificationCode,
+        );
+      }
+    }
     return { status: 'SUCCESS' };
   }
 }
