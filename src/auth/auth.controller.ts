@@ -216,11 +216,16 @@ export class AuthController {
   ): Promise<ResetPasswordResponseDto> {
     if (request.type === ResetPasswordType.Force) {
       if (!currentUser) return { error: ResetPasswordResponseError.NOT_LOGGED };
-      const user = await this.userService.findUserByEmail(request.email);
+      let user = await this.userService.findUserById(request.userId);
+      if (!user) user = await this.userService.findUserByEmail(request.email);
       if (!user) return { error: ResetPasswordResponseError.NO_SUCH_USER };
 
       // Only manager can force reset password, except admin
       if (!currentUser.isManager || user.isAdmin) {
+        return { error: ResetPasswordResponseError.PERMISSION_DENIED };
+      }
+      // Only admin can force reset manager's password
+      if (!currentUser.isAdmin || user.isManager) {
         return { error: ResetPasswordResponseError.PERMISSION_DENIED };
       }
 
@@ -228,7 +233,7 @@ export class AuthController {
 
       // Changing password
       const auth = await this.authService.findAuthByUserId(user.id);
-      await this.authService.changePassword(auth, request.password);
+      await this.authService.changePassword(auth, request.newPassword);
 
       // Force resetting password must revoke all sessions
       await this.authSessionService.revokeAllSessionsExcept(user.id, null);
@@ -250,7 +255,7 @@ export class AuthController {
 
       // Changing password
       const auth = await this.authService.findAuthByUserId(user.id);
-      await this.authService.changePassword(auth, request.password);
+      await this.authService.changePassword(auth, request.newPassword);
 
       // Forgetting resetting password must revoke all sessions
       await this.authSessionService.revokeAllSessionsExcept(user.id, null);
@@ -290,7 +295,7 @@ export class AuthController {
       }
 
       // Changing password
-      await this.authService.changePassword(auth, request.password);
+      await this.authService.changePassword(auth, request.newPassword);
 
       // Common resetting password must revoke all sessions except current session
       await this.authSessionService.revokeAllSessionsExcept(
