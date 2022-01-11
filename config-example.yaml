@@ -53,6 +53,8 @@ queryLimit:
   searchGroup: 20
   userList: 100
 preference:
+  siteName: TYWZOJ
+  domainRecordInformation:
   security:
     recaptchaEnabled: false
     recaptchaKey:

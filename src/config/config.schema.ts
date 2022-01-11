@@ -327,6 +327,16 @@ class PaginationPreferenceConfig {
 
 // These config items will be sent to client
 export class PreferenceConfig {
+  @IsString()
+  @IsOptional()
+  @ApiProperty()
+  readonly siteName: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiProperty()
+  readonly domainRecordInformation: string;
+
   @ValidateNested()
   @Type(() => SecurityPreferenceConfig)
   @ApiProperty()
