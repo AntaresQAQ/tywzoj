@@ -149,6 +149,7 @@ export class AuthController {
         req.ip,
         req.headers['user-agent'],
       ),
+      userMeta: await this.userService.getUserMeta(user, user),
     };
   }
 
