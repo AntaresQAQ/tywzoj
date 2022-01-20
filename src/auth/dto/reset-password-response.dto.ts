@@ -7,6 +7,7 @@ export enum ResetPasswordResponseError {
   NOT_LOGGED = 'NOT_LOGGED',
   ALREADY_LOGGED = 'ALREADY_LOGGED',
   INVALID_EMAIL_VERIFICATION_CODE = 'INVALID_EMAIL_VERIFICATION_CODE',
+  ACCOUNT_BLOCKED = 'ACCOUNT_BLOCKED',
 }
 
 export class ResetPasswordResponseDto {

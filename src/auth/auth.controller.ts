@@ -92,6 +92,7 @@ export class AuthController {
       return { error: LoginResponseError.NO_SUCH_USER };
     }
     if (!user) return { error: LoginResponseError.NO_SUCH_USER };
+    if (user.isBlocked) return { error: LoginResponseError.ACCOUNT_BLOCKED };
     const auth = await this.authService.findAuthByUserId(user.id);
     if (!(await this.authService.checkPassword(auth, request.password))) {
       return { error: LoginResponseError.WRONG_PASSWORD };
@@ -181,6 +182,9 @@ export class AuthController {
       if (!currentUser) {
         return { error: SendVerificationCodeResponseError.PERMISSION_DENIED };
       }
+      if (currentUser.isBlocked) {
+        return { error: SendVerificationCodeResponseError.ACCOUNT_BLOCKED };
+      }
       if (!(await this.userService.checkEmailAvailability(request.email))) {
         return { error: SendVerificationCodeResponseError.DUPLICATE_EMAIL };
       }
@@ -188,6 +192,9 @@ export class AuthController {
       const user = await this.userService.findUserByEmail(request.email);
       if (!user) {
         return { error: SendVerificationCodeResponseError.NO_SUCH_USER };
+      }
+      if (user.isBlocked) {
+        return { error: SendVerificationCodeResponseError.ACCOUNT_BLOCKED };
       }
     }
 
@@ -221,12 +228,8 @@ export class AuthController {
       if (!user) user = await this.userService.findUserByEmail(request.email);
       if (!user) return { error: ResetPasswordResponseError.NO_SUCH_USER };
 
-      // Only manager can force reset password, except admin
-      if (!currentUser.isManager || user.isAdmin) {
-        return { error: ResetPasswordResponseError.PERMISSION_DENIED };
-      }
-      // Only admin can force reset manager's password
-      if (!currentUser.isAdmin || user.isManager) {
+      // Only admin can force reset password, except the account is admin too.
+      if (!currentUser.isAdmin || user.isAdmin) {
         return { error: ResetPasswordResponseError.PERMISSION_DENIED };
       }
 
@@ -242,6 +245,7 @@ export class AuthController {
       if (currentUser) return { error: ResetPasswordResponseError.ALREADY_LOGGED };
       const user = await this.userService.findUserByEmail(request.email);
       if (!user) return { error: ResetPasswordResponseError.NO_SUCH_USER };
+      if (user.isBlocked) return { error: ResetPasswordResponseError.ACCOUNT_BLOCKED };
 
       // Forgetting resetting password must require email verification
       if (
@@ -271,6 +275,9 @@ export class AuthController {
       const { requireEmailVerification } =
         this.configService.preferenceConfigToBeSentToUser.security;
       if (!currentUser) return { error: ResetPasswordResponseError.NOT_LOGGED };
+      if (currentUser.isBlocked) {
+        return { error: ResetPasswordResponseError.ACCOUNT_BLOCKED };
+      }
 
       const auth = await this.authService.findAuthByUserId(currentUser.id);
 

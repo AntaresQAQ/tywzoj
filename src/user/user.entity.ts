@@ -58,4 +58,8 @@ export class UserEntity {
   get isManager(): boolean {
     return this.type === UserType.MANAGER || this.isAdmin;
   }
+
+  get isBlocked(): boolean {
+    return this.type === UserType.BLOCKED;
+  }
 }
