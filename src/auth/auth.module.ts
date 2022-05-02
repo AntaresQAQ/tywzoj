@@ -8,6 +8,7 @@ import {
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AuthVerificationCodeService } from '@/auth/auth-verification-code.service';
+import { MailModule } from '@/mail/mail.module';
 import { RedisModule } from '@/redis/redis.module';
 import { UserModule } from '@/user/user.module';
 
@@ -22,6 +23,7 @@ import { AuthSessionService } from './auth-session.service';
     TypeOrmModule.forFeature([AuthEntity]),
     forwardRef(() => RedisModule),
     forwardRef(() => UserModule),
+    forwardRef(() => MailModule),
   ],
   exports: [AuthService, AuthSessionService, AuthVerificationCodeService],
   providers: [AuthService, AuthSessionService, AuthVerificationCodeService],

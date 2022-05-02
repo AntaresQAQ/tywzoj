@@ -4,6 +4,7 @@ import { Recaptcha } from '@nestlab/google-recaptcha';
 
 import { CurrentUser } from '@/common/user.decorator';
 import { ConfigService } from '@/config/config.service';
+import { MailService, MailTemplate } from '@/mail/mail.service';
 import { appGitRepoInfo } from '@/main';
 import { UserEntity } from '@/user/user.entity';
 import { UserService } from '@/user/user.service';
@@ -44,6 +45,7 @@ export class AuthController {
     private readonly authVerificationCodeService: AuthVerificationCodeService,
     private readonly userService: UserService,
     private readonly configService: ConfigService,
+    private readonly mailService: MailService,
   ) {}
 
   @Get('getSessionInfo')
@@ -204,8 +206,29 @@ export class AuthController {
     );
     if (!code) return { error: SendVerificationCodeResponseError.RATE_LIMITED };
 
-    // TODO: send email
-    console.log(code);
+    switch (request.type) {
+      case VerificationCodeType.Register:
+        await this.mailService.sendMail(
+          MailTemplate.RegisterVerificationCode,
+          { code },
+          request.email,
+        );
+        break;
+      case VerificationCodeType.ChangeEmail:
+        await this.mailService.sendMail(
+          MailTemplate.ChangeEmailVerificationCode,
+          { code },
+          request.email,
+        );
+        break;
+      case VerificationCodeType.ResetPassword:
+        await this.mailService.sendMail(
+          MailTemplate.ResetPasswordVerificationCode,
+          { code },
+          request.email,
+        );
+        break;
+    }
 
     return { status: 'SUCCESS' };
   }
