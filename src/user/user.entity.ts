@@ -45,6 +45,15 @@ export class UserEntity {
   @Column({ type: 'enum', enum: UserType, default: UserType.GENERAL })
   type: UserType;
 
+  @Column({ type: 'integer' })
+  acceptedProblemCounter: number;
+
+  @Column({ type: 'integer' })
+  submissionCounter: number;
+
+  @Column({ type: 'integer' })
+  rating: number;
+
   @Column({ type: 'datetime', nullable: true })
   registrationTime: Date;
 
