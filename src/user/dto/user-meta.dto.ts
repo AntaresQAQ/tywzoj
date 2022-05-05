@@ -22,7 +22,7 @@ export class UserMetaDto {
   gender: UserGender;
 
   @ApiProperty()
-  avater: string;
+  avatar: string;
 
   @ApiProperty({ enum: UserType, default: UserType.GENERAL })
   type: UserType;

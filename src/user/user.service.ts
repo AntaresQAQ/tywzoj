@@ -5,7 +5,7 @@ import { Repository } from 'typeorm';
 
 import { UserEntity } from '@/user/user.entity';
 
-import { UserMetaDto } from './dto';
+import { UserMetaDto, UserStatisticsDto } from './dto';
 
 @Injectable()
 export class UserService {
@@ -26,7 +26,7 @@ export class UserService {
     return await this.userRepository.findOne({ email });
   }
 
-  private static getUserAvater(user: UserEntity): string {
+  private static getUserAvatar(user: UserEntity): string {
     return crypto.createHash('md5').update(user.email.trim().toLowerCase()).digest('hex');
   }
 
@@ -43,10 +43,20 @@ export class UserService {
       email: returnEmail ? user.email : null,
       nickname: user.nickname,
       gender: user.gender,
-      avater: UserService.getUserAvater(user),
+      avatar: UserService.getUserAvatar(user),
       type: user.type,
       information: user.information,
       registrationTime: user.registrationTime,
+    };
+  }
+
+  async getUserStatistics(user: UserEntity): Promise<UserStatisticsDto> {
+    // TODO: query the submissions
+    return {
+      acceptedProblemCounter: user.acceptedProblemCounter,
+      submissionCounter: user.submissionCounter,
+      rating: user.rating,
+      submissions: null,
     };
   }
 
