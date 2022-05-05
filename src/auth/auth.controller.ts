@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query, Req } from '@nestjs/common';
+import { Body, Controller, Post, Req } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Recaptcha } from '@nestlab/google-recaptcha';
 
@@ -48,12 +48,12 @@ export class AuthController {
     private readonly mailService: MailService,
   ) {}
 
-  @Get('getSessionInfo')
+  @Post('getSessionInfo')
   @ApiOperation({
     summary: "A request to get current user's info and server preference",
   })
   async getSessionInfo(
-    @Query() request: GetSessionInfoRequestDto,
+    @Body() request: GetSessionInfoRequestDto,
   ): Promise<GetSessionInfoResponseDto> {
     const [, user] = await this.authSessionService.accessSession(request.token);
     const result: GetSessionInfoResponseDto = {
