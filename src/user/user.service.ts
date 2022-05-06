@@ -5,7 +5,7 @@ import { Repository } from 'typeorm';
 
 import { UserEntity } from '@/user/user.entity';
 
-import { UserMetaDto, UserStatisticsDto } from './dto';
+import { UserMetaDto } from './dto';
 
 @Injectable()
 export class UserService {
@@ -45,18 +45,11 @@ export class UserService {
       gender: user.gender,
       avatar: UserService.getUserAvatar(user),
       type: user.type,
+      rating: user.rating,
+      acceptedProblemCount: user.acceptedProblemCount,
+      submissionCount: user.submissionCount,
       information: user.information,
       registrationTime: user.registrationTime,
-    };
-  }
-
-  async getUserStatistics(user: UserEntity): Promise<UserStatisticsDto> {
-    // TODO: query the submissions
-    return {
-      acceptedProblemCounter: user.acceptedProblemCounter,
-      submissionCounter: user.submissionCounter,
-      rating: user.rating,
-      submissions: null,
     };
   }
 
@@ -66,5 +59,19 @@ export class UserService {
 
   async checkEmailAvailability(email: string): Promise<boolean> {
     return (await this.userRepository.count({ email })) === 0;
+  }
+
+  async getUserList(
+    sortBy: 'acceptedProblemCount' | 'rating' | 'id',
+    skipCount: number,
+    takeCount: number,
+  ): Promise<[users: UserEntity[], count: number]> {
+    return await this.userRepository.findAndCount({
+      order: {
+        [sortBy]: 'DESC',
+      },
+      skip: skipCount,
+      take: takeCount,
+    });
   }
 }

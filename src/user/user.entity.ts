@@ -46,10 +46,10 @@ export class UserEntity {
   type: UserType;
 
   @Column({ type: 'integer' })
-  acceptedProblemCounter: number;
+  acceptedProblemCount: number;
 
   @Column({ type: 'integer' })
-  submissionCounter: number;
+  submissionCount: number;
 
   @Column({ type: 'integer' })
   rating: number;
