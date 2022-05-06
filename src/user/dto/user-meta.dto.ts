@@ -28,5 +28,14 @@ export class UserMetaDto {
   type: UserType;
 
   @ApiProperty()
+  acceptedProblemCount: number;
+
+  @ApiProperty()
+  submissionCount: number;
+
+  @ApiProperty()
+  rating: number;
+
+  @ApiProperty()
   registrationTime: Date;
 }
