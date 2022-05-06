@@ -10,6 +10,8 @@ export class UserStatisticsDto {
   @ApiProperty()
   rating: number;
 
+  // TODO: fix after query the submissions
+  // It will be an object
   @ApiProperty()
-  submissions: unknown;
+  submissions?: string;
 }
