@@ -68,7 +68,7 @@ export class UserService {
   ): Promise<[users: UserEntity[], count: number]> {
     return await this.userRepository.findAndCount({
       order: {
-        [sortBy]: 'DESC',
+        [sortBy]: sortBy === 'id' ? 'ACS' : 'DESC',
       },
       skip: skipCount,
       take: takeCount,
