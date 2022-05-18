@@ -326,6 +326,25 @@ class PaginationPreferenceConfig {
 }
 
 // These config items will be sent to client
+class MiscPreferenceConfig {
+  @IsString()
+  @ApiProperty()
+  readonly gravatarCdn: string;
+
+  @IsIn(['id', 'rating', 'acceptedProblemCount'])
+  @ApiProperty({ enum: ['acceptedProblemCount', 'rating', 'id'] })
+  readonly sortUserBy: 'id' | 'rating' | 'acceptedProblemCount';
+
+  @IsBoolean()
+  @ApiProperty()
+  readonly renderMarkdownInUserBio: boolean;
+
+  @IsBoolean()
+  @ApiProperty()
+  readonly renderMarkdownInUserListBio: boolean;
+}
+
+// These config items will be sent to client
 export class PreferenceConfig {
   @IsString()
   @IsOptional()
@@ -346,6 +365,11 @@ export class PreferenceConfig {
   @Type(() => PaginationPreferenceConfig)
   @ApiProperty()
   readonly pagination: PaginationPreferenceConfig;
+
+  @ValidateNested()
+  @Type(() => MiscPreferenceConfig)
+  @ApiProperty()
+  readonly misc: MiscPreferenceConfig;
 }
 
 // END PreferenceConfig

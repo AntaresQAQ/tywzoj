@@ -75,4 +75,10 @@ preference:
     searchUser: 20
     searchGroup: 20
     userList: 100
+  misc:
+    gravatarCdn: https://cn.gravatar.com/avatar/
+    sortUserBy: rating # id, rating, acceptedProblemCount
+    renderMarkdownInUserBio: true
+    renderMarkdownInUserListBio: false
+
 
