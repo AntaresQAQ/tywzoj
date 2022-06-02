@@ -18,7 +18,7 @@ service:
 security:
   crossOrigin:
     enabled: true
-    whiteList:
+    whiteList: # whiteList is an array and each item must be an url with protocol
       - http://tywzoj.top
       - https://tywzoj.top
   sessionSecret: don't leak this
@@ -30,6 +30,8 @@ security:
     enabled: false
     maxRequests: 200
     durationSeconds: 10
+    whiteList: # whiteList is an array and each item must be a CIDR
+      - 127.0.0.0/8
 resourceLimit:
   problemTestdataFiles: 40
   problemTestdataSize: 134217728
@@ -54,7 +56,7 @@ queryLimit:
   userList: 100
 preference:
   siteName: TYWZOJ
-  domainRecordInformation:
+  domainIcpRecordInformation:
   security:
     recaptchaEnabled: false
     recaptchaKey:
@@ -77,7 +79,7 @@ preference:
     userList: 100
   misc:
     gravatarCdn: https://cn.gravatar.com/avatar/
-    sortUserBy: rating # id, rating, acceptedProblemCount
+    sortUserBy: rating # sortUserBy can only be 'id', 'rating' or 'acceptedProblemCount'
     renderMarkdownInUserBio: true
     renderMarkdownInUserListBio: false
 

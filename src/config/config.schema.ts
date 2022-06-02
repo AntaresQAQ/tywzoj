@@ -13,7 +13,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 
-import { IsPortNumber } from '@/common/validators';
+import { IsCIDR, IsPortNumber } from '@/common/validators';
 
 import { ConfigRelation, ConfigRelationType } from './config-relation.decorator';
 
@@ -113,6 +113,10 @@ class RateLimitSecurityConfig {
   @IsInt()
   @IsOptional()
   readonly durationSeconds: number;
+
+  @IsArray()
+  @IsCIDR({ each: true })
+  readonly whiteList: string[];
 }
 
 class SecurityConfig {
@@ -354,7 +358,7 @@ export class PreferenceConfig {
   @IsString()
   @IsOptional()
   @ApiProperty()
-  readonly domainRecordInformation: string;
+  readonly domainIcpRecordInformation: string;
 
   @ValidateNested()
   @Type(() => SecurityPreferenceConfig)
