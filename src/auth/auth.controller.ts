@@ -50,7 +50,7 @@ export class AuthController {
 
   @Post('getSessionInfo')
   @ApiOperation({
-    summary: "A request to get current user's info and server preference",
+    summary: "A request to get current user's info and server preference.",
   })
   async getSessionInfo(
     @Body() request: GetSessionInfoRequestDto,
@@ -74,7 +74,8 @@ export class AuthController {
   @Recaptcha()
   @Post('login')
   @ApiOperation({
-    summary: 'A request to login',
+    summary: 'A request to login.',
+    description: 'Recaptcha required.',
   })
   @ApiBearerAuth()
   async login(
@@ -127,7 +128,8 @@ export class AuthController {
   @Recaptcha()
   @Post('register')
   @ApiOperation({
-    summary: 'A request to register a new user',
+    summary: 'A request to register a new user.',
+    description: 'Recaptcha required.',
   })
   @ApiBearerAuth()
   async register(
@@ -159,7 +161,7 @@ export class AuthController {
   @Recaptcha()
   @Post('sendVerificationCode')
   @ApiOperation({
-    summary: 'A request to send email verification code',
+    summary: 'A request to send email verification code.',
     description: 'Recaptcha required.',
   })
   @ApiBearerAuth()
@@ -236,7 +238,7 @@ export class AuthController {
   @Recaptcha()
   @Post('resetPassword')
   @ApiOperation({
-    summary: 'A request to reset password',
+    summary: 'A request to reset password.',
     description: 'Recaptcha required.',
   })
   @ApiBearerAuth()
