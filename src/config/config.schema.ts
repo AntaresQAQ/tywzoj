@@ -86,7 +86,7 @@ class CrossOriginSecurityConfig {
 
   @IsArray()
   @IsString({ each: true })
-  readonly whiteList: string[];
+  readonly whitelist: string[];
 }
 
 class RecaptchaSecurityConfig {
@@ -116,7 +116,7 @@ class RateLimitSecurityConfig {
 
   @IsArray()
   @IsCIDR({ each: true })
-  readonly whiteList: string[];
+  readonly whitelist: string[];
 }
 
 class SecurityConfig {

@@ -18,7 +18,7 @@ service:
 security:
   crossOrigin:
     enabled: true
-    whiteList: # whiteList is an array and each item must be an url with protocol
+    whitelist: # whitelist is an array and each item must be an url with protocol
       - http://tywzoj.top
       - https://tywzoj.top
   sessionSecret: don't leak this
@@ -30,7 +30,7 @@ security:
     enabled: false
     maxRequests: 200
     durationSeconds: 10
-    whiteList: # whiteList is an array and each item must be a CIDR
+    whitelist: # whitelist is an array and each item must be a CIDR
       - 127.0.0.0/8
 resourceLimit:
   problemTestdataFiles: 40

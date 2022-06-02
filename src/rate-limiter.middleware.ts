@@ -20,7 +20,7 @@ export class RateLimiterMiddleware implements NestMiddleware {
 
   use(req: Request, res: Response, next: () => void) {
     if (this.rateLimiter) {
-      for (const cidr of this.configService.config.security.rateLimit.whiteList) {
+      for (const cidr of this.configService.config.security.rateLimit.whitelist) {
         if (cidrSubnet(cidr).contains(req.ip)) {
           next();
           return;

@@ -50,7 +50,7 @@ async function bootstrap() {
   // Configure CORS
   if (configService.config.security.crossOrigin.enabled) {
     app.enableCors({
-      origin: configService.config.security.crossOrigin.whiteList,
+      origin: configService.config.security.crossOrigin.whitelist,
       optionsSuccessStatus: 200,
     });
   }
