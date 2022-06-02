@@ -24,7 +24,8 @@ export class UserController {
   @Recaptcha()
   @Post('getUserDetail')
   @ApiOperation({
-    summary: 'A request to get user meta',
+    summary: 'A request to get user meta.',
+    description: 'Recaptcha required.',
   })
   @ApiBearerAuth()
   async getUserDetail(
@@ -44,7 +45,8 @@ export class UserController {
   @Recaptcha()
   @Post('getUserList')
   @ApiOperation({
-    summary: 'A request to get user list',
+    summary: 'A request to get user list.',
+    description: 'Recaptcha required.',
   })
   @ApiBearerAuth()
   async getUserList(
