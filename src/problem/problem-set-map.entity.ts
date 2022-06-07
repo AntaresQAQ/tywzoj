@@ -16,6 +16,9 @@ export class ProblemSetMapEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column({ type: 'integer', default: 100 })
+  sortIndex: number;
+
   @ManyToOne(() => ProblemSetEntity, {
     onDelete: 'CASCADE',
   })

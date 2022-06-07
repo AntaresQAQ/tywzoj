@@ -5,9 +5,11 @@ import {
   JoinColumn,
   ManyToOne,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
+import { ProblemJudgeInfoEntity } from '@/problem/problem-judge-info.entity';
 import { UserEntity } from '@/user/user.entity';
 
 import { ProblemSampleEntity } from './problem-sample.entity';
@@ -16,6 +18,12 @@ export enum ProblemType {
   Traditional = 'Traditional',
   Interaction = 'Interaction',
   SubmitAnswer = 'SubmitAnswer',
+}
+
+export enum ProblemPermission {
+  ALL = 'ALL',
+  PAYING = 'PAYING',
+  SCHOOL = 'SCHOOL',
 }
 
 @Entity('problem')
@@ -66,9 +74,15 @@ export class ProblemEntity {
   @Column({ type: 'datetime', nullable: true })
   publicTime: Date;
 
-  @Column({ type: 'integer' })
-  submissionCounter: number;
+  @Column({ type: 'enum', enum: ProblemPermission, default: ProblemPermission.ALL })
+  permission: ProblemPermission;
 
   @Column({ type: 'integer' })
-  acceptedSubmissionCounter: number;
+  submissionCount: number;
+
+  @Column({ type: 'integer' })
+  acceptedSubmissionCount: number;
+
+  @OneToOne(() => ProblemJudgeInfoEntity, problemJudgeInfo => problemJudgeInfo.problem)
+  judgeInfo: Promise<ProblemJudgeInfoEntity>;
 }

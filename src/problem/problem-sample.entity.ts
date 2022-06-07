@@ -7,7 +7,9 @@ export class ProblemSampleEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => ProblemEntity, problem => problem.samples)
+  @ManyToOne(() => ProblemEntity, problem => problem.samples, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn()
   problem: Promise<ProblemEntity>;
 
