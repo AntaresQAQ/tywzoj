@@ -16,9 +16,7 @@ export class MailService {
   private readonly transporter: nodemailer.Transporter;
 
   constructor(private readonly configService: ConfigService) {
-    this.transporter = nodemailer.createTransport(
-      this.configService.config.service.mail.transport,
-    );
+    this.transporter = nodemailer.createTransport(this.configService.config.service.mail.transport);
   }
 
   private async render(

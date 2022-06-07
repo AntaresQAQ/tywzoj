@@ -7,11 +7,7 @@ export enum ConfigRelationType {
   MoreThanOrEqual = 'MoreThanOrEqual',
 }
 
-function satisfy(
-  thisValue: number,
-  referencedValue: number,
-  relationType: ConfigRelationType,
-) {
+function satisfy(thisValue: number, referencedValue: number, relationType: ConfigRelationType) {
   switch (relationType) {
     case ConfigRelationType.LessThan:
       return thisValue < referencedValue;
@@ -40,10 +36,7 @@ const CONFIG_RELATION_METADATA_KEY = 'config-relation';
  * @param referencedValuePath
  * @param relationType
  */
-export function ConfigRelation(
-  referencedValuePath: string,
-  relationType: ConfigRelationType,
-) {
+export function ConfigRelation(referencedValuePath: string, relationType: ConfigRelationType) {
   return Reflect.metadata(CONFIG_RELATION_METADATA_KEY, <ConfigRelationMetadata>{
     referencedValuePath,
     relationType,
@@ -67,10 +60,7 @@ function checkConfigRelationRecursively(
 
     if (typeof item === 'number' && metadata) {
       const thisValue = item;
-      const referencedValue = objectPath.get(
-        configRoot,
-        metadata.referencedValuePath,
-      ) as number;
+      const referencedValue = objectPath.get(configRoot, metadata.referencedValuePath) as number;
       if (!satisfy(thisValue, referencedValue, metadata.relationType)) {
         throw new Error(
           `Config validation error: ${currentPath}${key} must satisfy the relation "${metadata.relationType}" when comparing to ${metadata.referencedValuePath}`,

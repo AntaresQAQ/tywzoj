@@ -33,8 +33,7 @@ export class UserController {
     @Body() request: GetUserDetailRequestDto,
   ): Promise<GetUserDetailResponseDto> {
     if (!currentUser) return { error: GetUserDetailResponseError.NOT_LOGGED };
-    if (currentUser.isBlocked)
-      return { error: GetUserDetailResponseError.PERMISSION_DENIED };
+    if (currentUser.isBlocked) return { error: GetUserDetailResponseError.PERMISSION_DENIED };
     const user = await this.userService.findUserById(request.id);
     if (!user) return { error: GetUserDetailResponseError.NO_SUCH_USER };
     return {
@@ -54,8 +53,7 @@ export class UserController {
     @Body() request: GetUserListRequestDto,
   ): Promise<GetUserListResponseDto> {
     if (!currentUser) return { error: GetUserListResponseError.NOT_LOGGED };
-    if (currentUser.isBlocked)
-      return { error: GetUserListResponseError.PERMISSION_DENIED };
+    if (currentUser.isBlocked) return { error: GetUserListResponseError.PERMISSION_DENIED };
     if (request.takeCount > this.configService.config.queryLimit.userList)
       return {
         error: GetUserListResponseError.TAKE_TOO_MANY,

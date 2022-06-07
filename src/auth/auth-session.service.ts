@@ -37,17 +37,11 @@ export class AuthSessionService {
     this.redis = this.redisService.getClient() as RedisWithSessionManager;
     this.redis.defineCommand('callSessionManager', {
       numberOfKeys: 0,
-      lua: fs
-        .readFileSync(join(__dirname, 'scripts', 'session-manager.lua'))
-        .toString('utf-8'),
+      lua: fs.readFileSync(join(__dirname, 'scripts', 'session-manager.lua')).toString('utf-8'),
     });
   }
 
-  async newSession(
-    user: UserEntity,
-    loginIp: string,
-    userAgent: string,
-  ): Promise<string> {
+  async newSession(user: UserEntity, loginIp: string, userAgent: string): Promise<string> {
     const timeStamp = +new Date();
     const sessionInfo: SessionInfoInternal = {
       loginIp: loginIp,
@@ -95,12 +89,7 @@ export class AuthSessionService {
     try {
       const [userId, sessionId] = this.decodeSessionKey(sessionKey);
 
-      const success = await this.redis.callSessionManager(
-        'access',
-        +new Date(),
-        userId,
-        sessionId,
-      );
+      const success = await this.redis.callSessionManager('access', +new Date(), userId, sessionId);
       if (!success) return [null, null];
 
       return [sessionId, await this.userService.findUserById(userId)];
@@ -110,10 +99,7 @@ export class AuthSessionService {
   }
 
   async listUserSessions(userId: number): Promise<SessionInfo[]> {
-    const result: [string, string, string][] = await this.redis.callSessionManager(
-      'list',
-      userId,
-    );
+    const result: [string, string, string][] = await this.redis.callSessionManager('list', userId);
     return result.map(
       ([sessionId, lastAccessTime, sessionInfo]): SessionInfo => ({
         sessionId: parseInt(sessionId),

@@ -4,10 +4,7 @@ import { isIP, registerDecorator, ValidationOptions } from 'class-validator';
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-export function If<T>(
-  callback: (value: T) => boolean,
-  validationOptions?: ValidationOptions,
-) {
+export function If<T>(callback: (value: T) => boolean, validationOptions?: ValidationOptions) {
   return (object: unknown, propertyName: string) => {
     registerDecorator({
       target: object.constructor,
@@ -34,10 +31,7 @@ export function IsIntString(validationOptions?: ValidationOptions) {
 // class-validator's IsPort accepts strings only,
 // but I prefer writing port numbers as number
 export function IsPortNumber(validationOptions?: ValidationOptions) {
-  return If(
-    value => Number.isInteger(value) && value >= 1 && value <= 65535,
-    validationOptions,
-  );
+  return If(value => Number.isInteger(value) && value >= 1 && value <= 65535, validationOptions);
 }
 
 // A username is a string of 3 ~ 24 ASCII characters, and each character
@@ -61,10 +55,7 @@ export function isValidFilename(filename: string): boolean {
 }
 
 export function IsValidFilename(validationOptions?: ValidationOptions) {
-  return If(
-    value => typeof value === 'string' && isValidFilename(value),
-    validationOptions,
-  );
+  return If(value => typeof value === 'string' && isValidFilename(value), validationOptions);
 }
 
 export function isCIDR(value: string): boolean {

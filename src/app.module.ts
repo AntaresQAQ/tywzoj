@@ -1,10 +1,4 @@
-import {
-  forwardRef,
-  MiddlewareConsumer,
-  Module,
-  NestModule,
-  RequestMethod,
-} from '@nestjs/common';
+import { forwardRef, MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
 
 import { ArticleModule } from '@/article/article.module';
 import { AuthModule } from '@/auth/auth.module';

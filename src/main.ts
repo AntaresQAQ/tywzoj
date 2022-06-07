@@ -31,10 +31,7 @@ async function bootstrap() {
       ).format('YYYY-MM-DD H:mm:ss')})`
     : '';
 
-  Logger.log(
-    `Starting ${packageInfo.name} version ${appVersion}${gitRepoVersion}`,
-    'Bootstrap',
-  );
+  Logger.log(`Starting ${packageInfo.name} version ${appVersion}${gitRepoVersion}`, 'Bootstrap');
 
   // Create nestjs app
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -67,10 +64,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, options);
   SwaggerModule.setup('/docs', app, document);
 
-  await app.listen(
-    configService.config.server.port,
-    configService.config.server.hostname,
-  );
+  await app.listen(configService.config.server.port, configService.config.server.hostname);
 
   Logger.log(
     `${packageInfo.name} is listening on ${configService.config.server.hostname}:${configService.config.server.port}`,

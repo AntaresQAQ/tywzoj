@@ -55,14 +55,8 @@ export class AuthVerificationCodeService {
     return code;
   }
 
-  async verify(
-    type: VerificationCodeType,
-    email: string,
-    code: string,
-  ): Promise<boolean> {
-    return !!(await this.redis.get(
-      REDIS_KEY_VERIFICATION_CODE.format(type, email, code),
-    ));
+  async verify(type: VerificationCodeType, email: string, code: string): Promise<boolean> {
+    return !!(await this.redis.get(REDIS_KEY_VERIFICATION_CODE.format(type, email, code)));
   }
 
   async revoke(type: VerificationCodeType, email: string, code: string): Promise<void> {
