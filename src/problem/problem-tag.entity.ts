@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
 
 export enum ProblemTagType {
   Algorithm = 'Algorithm',
@@ -13,6 +13,7 @@ export class ProblemTagEntity {
   id: number;
 
   @Column({ type: 'varchar', length: 24, nullable: false })
+  @Index({ unique: true })
   name: string;
 
   @Column({
@@ -22,4 +23,8 @@ export class ProblemTagEntity {
     default: ProblemTagType.Other,
   })
   type: ProblemTagType;
+
+  @Column({ type: 'integer', default: 100 })
+  @Index({ unique: false })
+  order: number;
 }

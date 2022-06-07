@@ -101,11 +101,7 @@ export class AuthController {
       return { error: LoginResponseError.WRONG_PASSWORD };
     }
     return {
-      token: await this.authSessionService.newSession(
-        user,
-        req.ip,
-        req.headers['user-agent'],
-      ),
+      token: await this.authSessionService.newSession(user, req.ip, req.headers['user-agent']),
       userMeta: await this.userService.getUserMeta(user, user),
     };
   }
@@ -149,11 +145,7 @@ export class AuthController {
     if (error) return { error };
 
     return {
-      token: await this.authSessionService.newSession(
-        user,
-        req.ip,
-        req.headers['user-agent'],
-      ),
+      token: await this.authSessionService.newSession(user, req.ip, req.headers['user-agent']),
       userMeta: await this.userService.getUserMeta(user, user),
     };
   }
@@ -202,10 +194,7 @@ export class AuthController {
       }
     }
 
-    const code = await this.authVerificationCodeService.generate(
-      request.type,
-      request.email,
-    );
+    const code = await this.authVerificationCodeService.generate(request.type, request.email);
     if (!code) return { error: SendVerificationCodeResponseError.RATE_LIMITED };
 
     switch (request.type) {
@@ -331,10 +320,7 @@ export class AuthController {
       await this.authService.changePassword(auth, request.newPassword);
 
       // Common resetting password must revoke all sessions except current session
-      await this.authSessionService.revokeAllSessionsExcept(
-        currentUser.id,
-        req.session.sessionId,
-      );
+      await this.authSessionService.revokeAllSessionsExcept(currentUser.id, req.session.sessionId);
 
       // Revoke the verification code after the password changed successfully
       if (requireEmailVerification) {

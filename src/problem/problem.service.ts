@@ -2,7 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectConnection, InjectRepository } from '@nestjs/typeorm';
 import { Connection, Repository } from 'typeorm';
 
-import { ProblemMetaDto } from '@/problem/dto';
+import { ProblemMetaDto, ProblemTagMetaDto } from '@/problem/dto';
+import { ProblemTagEntity, ProblemTagType } from '@/problem/problem-tag.entity';
 import { ProblemTagMapEntity } from '@/problem/problem-tag-map.entity';
 import { UserEntity, UserType } from '@/user/user.entity';
 
@@ -15,6 +16,8 @@ export class ProblemService {
     private readonly connection: Connection,
     @InjectRepository(ProblemEntity)
     private readonly problemRepository: Repository<ProblemEntity>,
+    @InjectRepository(ProblemTagEntity)
+    private readonly problemTagRepository: Repository<ProblemTagEntity>,
     @InjectRepository(ProblemTagMapEntity)
     private readonly problemTagMapRepository: Repository<ProblemTagMapEntity>,
   ) {}
@@ -66,7 +69,7 @@ export class ProblemService {
     tagIds: number[],
     currentUser: UserEntity,
   ): Promise<[problems: ProblemEntity[], count: number]> {
-    const problemQueryBuilder = this.problemRepository
+    const queryBuilder = this.problemRepository
       .createQueryBuilder()
       .orderBy(sortBy, order)
       .skip(skipCount)
@@ -74,17 +77,39 @@ export class ProblemService {
       .where('permission IN (:permissions)', {
         permissions: this.userCanViewProblemPermissions(currentUser),
       });
+
     if (!currentUser.isManager) {
-      problemQueryBuilder.andWhere('isPublic = :isPublic', { isPublic: true });
+      queryBuilder.andWhere('isPublic = :isPublic', { isPublic: true });
     }
+
     if (tagIds && tagIds.length) {
-      const tagMapQuery = this.problemTagMapRepository
-        .createQueryBuilder()
-        .select('problemId')
-        .where('problemTagId IN (:tagIds)', { tagIds })
+      const query = queryBuilder
+        .subQuery()
+        .select('problemTagMap.problemId')
+        .from(ProblemTagMapEntity, 'problemTagMap')
+        .where('problemTagMap.problemTagId IN (:tagIds)', { tagIds })
         .getQuery();
-      problemQueryBuilder.andWhere(`id IN (${tagMapQuery})`);
+      queryBuilder.andWhere(`id IN ${query}`);
     }
-    return await problemQueryBuilder.getManyAndCount();
+
+    return await queryBuilder.getManyAndCount();
+  }
+
+  public getProblemTagMeta(tag: ProblemTagEntity): ProblemTagMetaDto {
+    return {
+      id: tag.id,
+      name: tag.name,
+      type: tag.type,
+      order: tag.order,
+    };
+  }
+
+  public async getProblemTagList(type?: ProblemTagType): Promise<ProblemTagEntity[]> {
+    const queryBuilder = this.problemTagRepository
+      .createQueryBuilder()
+      .orderBy('`order`', 'ASC')
+      .addOrderBy('name', 'ASC');
+    if (type) queryBuilder.where('type = :type', { type });
+    return await queryBuilder.getMany();
   }
 }
