@@ -77,10 +77,10 @@ export class ProblemEntity {
   @Column({ type: 'enum', enum: ProblemPermission, default: ProblemPermission.ALL })
   permission: ProblemPermission;
 
-  @Column({ type: 'integer' })
+  @Column({ type: 'integer', default: 0 })
   submissionCount: number;
 
-  @Column({ type: 'integer' })
+  @Column({ type: 'integer', default: 0 })
   acceptedSubmissionCount: number;
 
   @OneToOne(() => ProblemJudgeInfoEntity, problemJudgeInfo => problemJudgeInfo.problem)

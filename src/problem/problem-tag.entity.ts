@@ -22,6 +22,7 @@ export class ProblemTagEntity {
     nullable: false,
     default: ProblemTagType.Other,
   })
+  @Index({ unique: false })
   type: ProblemTagType;
 
   @Column({ type: 'integer', default: 100 })
