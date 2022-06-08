@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectConnection, InjectRepository } from '@nestjs/typeorm';
 import { Connection, Repository } from 'typeorm';
 
+import { escapeLike } from '@/database/database.utils';
 import { ProblemMetaDto, ProblemTagMetaDto } from '@/problem/dto';
 import { ProblemTagEntity, ProblemTagType } from '@/problem/problem-tag.entity';
 import { ProblemTagMapEntity } from '@/problem/problem-tag-map.entity';
@@ -80,19 +81,26 @@ export class ProblemService {
     return meta;
   }
 
+  async findProblemsByExistingIds(problemIds: number[]): Promise<ProblemEntity[]> {
+    if (problemIds.length === 0) return [];
+    const uniqueIds = Array.from(new Set(problemIds));
+    const records = await this.problemRepository.findByIds(uniqueIds);
+    const map = Object.fromEntries(records.map(record => [record.id, record]));
+    return problemIds.map(problemId => map[problemId]);
+  }
+
   public async getProblemList(
     sortBy: 'id' | 'title' | 'submissionCount' | 'acceptedSubmissionCount',
     order: 'ASC' | 'DESC',
     skipCount: number,
     takeCount: number,
+    keyword: string,
     tagIds: number[],
     currentUser: UserEntity,
   ): Promise<[problems: ProblemEntity[], count: number]> {
     const queryBuilder = this.problemRepository
       .createQueryBuilder('problem')
-      .orderBy(sortBy === 'id' ? 'problem.displayId' : `problem.${sortBy}`, order)
-      .skip(skipCount)
-      .take(takeCount)
+      .select('problem.id', 'id')
       .where('permission IN (:permissions)', {
         permissions: this.userCanViewProblemPermissions(currentUser),
       });
@@ -110,7 +118,28 @@ export class ProblemService {
         queryBuilder.having('COUNT(DISTINCT map.problemTagId) = :count', { count: tagIds.length });
     }
 
-    return await queryBuilder.getManyAndCount();
+    if (keyword) {
+      queryBuilder.andWhere('problem.title LIKE :like', { like: `%${escapeLike(keyword)}%` });
+    }
+
+    // QueryBuilder.getManyAndCount() has a bug with GROUP BY
+    const count = Number(
+      (
+        await this.connection
+          .createQueryBuilder()
+          .select('COUNT(*)', 'count')
+          .from(`(${queryBuilder.getQuery()})`, 'temp')
+          .setParameters(queryBuilder.expressionMap.parameters)
+          .getRawOne()
+      ).count,
+    );
+
+    queryBuilder.orderBy(sortBy === 'id' ? 'problem.displayId' : `problem.${sortBy}`, order);
+    const result = await queryBuilder
+      .limit(takeCount)
+      .offset(skipCount * takeCount)
+      .getRawMany();
+    return [await this.findProblemsByExistingIds(result.map(row => row.id)), count];
   }
 
   public getProblemTagMeta(tag: ProblemTagEntity): ProblemTagMetaDto {
