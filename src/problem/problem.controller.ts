@@ -51,7 +51,9 @@ export class ProblemController {
     return {
       count: count,
       problemMetas: await Promise.all(
-        problems.map(problem => this.problemService.getProblemMeta(problem, currentUser)),
+        problems.map(problem =>
+          this.problemService.getProblemMeta(problem, request.showTags, true, currentUser),
+        ),
       ),
     };
   }

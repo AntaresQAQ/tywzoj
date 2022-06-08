@@ -1,5 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 
+import { ProblemTagMetaDto } from '.';
+
 export class ProblemMetaDto {
   @ApiProperty()
   id: number;
@@ -15,4 +17,7 @@ export class ProblemMetaDto {
 
   @ApiProperty()
   acceptedSubmissionCount: number;
+
+  @ApiProperty({ nullable: true })
+  tags?: ProblemTagMetaDto[];
 }
