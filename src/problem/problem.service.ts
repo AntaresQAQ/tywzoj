@@ -48,17 +48,36 @@ export class ProblemService {
 
   public async getProblemMeta(
     problem: ProblemEntity,
+    queryTags: boolean,
+    queryJudgeState: boolean,
     currentUser: UserEntity,
   ): Promise<ProblemMetaDto> {
-    // TODO: query tags
     // TODO: query judge state
-    return {
+
+    const meta: ProblemMetaDto = {
       id: problem.displayId,
       title: problem.title,
       isPublic: problem.isPublic,
       submissionCount: problem.submissionCount,
       acceptedSubmissionCount: problem.acceptedSubmissionCount,
     };
+
+    if (queryTags) {
+      const queryBuilder = await this.problemTagRepository.createQueryBuilder('tag');
+      const tagIdsQuery = queryBuilder
+        .subQuery()
+        .select('map.problemTagId')
+        .from(ProblemTagMapEntity, 'map')
+        .where('map.problemId = :problemId ', { problemId: problem.id })
+        .getQuery();
+      queryBuilder
+        .where(`id IN ${tagIdsQuery}`)
+        .orderBy('type', 'ASC')
+        .addOrderBy('`order`', 'ASC');
+      meta.tags = (await queryBuilder.getMany()).map(tag => this.getProblemTagMeta(tag));
+    }
+
+    return meta;
   }
 
   public async getProblemList(
@@ -70,8 +89,8 @@ export class ProblemService {
     currentUser: UserEntity,
   ): Promise<[problems: ProblemEntity[], count: number]> {
     const queryBuilder = this.problemRepository
-      .createQueryBuilder()
-      .orderBy(sortBy, order)
+      .createQueryBuilder('problem')
+      .orderBy(sortBy === 'id' ? 'problem.displayId' : `problem.${sortBy}`, order)
       .skip(skipCount)
       .take(takeCount)
       .where('permission IN (:permissions)', {
@@ -79,17 +98,16 @@ export class ProblemService {
       });
 
     if (!currentUser.isManager) {
-      queryBuilder.andWhere('isPublic = :isPublic', { isPublic: true });
+      queryBuilder.andWhere('isPublic = 1');
     }
 
-    if (tagIds && tagIds.length) {
-      const query = queryBuilder
-        .subQuery()
-        .select('problemTagMap.problemId')
-        .from(ProblemTagMapEntity, 'problemTagMap')
-        .where('problemTagMap.problemTagId IN (:tagIds)', { tagIds })
-        .getQuery();
-      queryBuilder.andWhere(`id IN ${query}`);
+    if (tagIds && tagIds.length > 0) {
+      queryBuilder
+        .innerJoin(ProblemTagMapEntity, 'map', 'problem.id = map.problemId')
+        .andWhere('map.problemTagId IN (:...tagIds)', { tagIds })
+        .groupBy('problem.id');
+      if (tagIds.length > 1)
+        queryBuilder.having('COUNT(DISTINCT map.problemTagId) = :count', { count: tagIds.length });
     }
 
     return await queryBuilder.getManyAndCount();
