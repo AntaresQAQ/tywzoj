@@ -44,6 +44,7 @@ export class ProblemController {
       request.order,
       request.skipCount,
       request.takeCount,
+      request.keyword,
       request.tagIds,
       currentUser,
     );
