@@ -47,6 +47,14 @@ export class ProblemService {
     return [ProblemPermission.ALL];
   }
 
+  public async findProblemById(id: number): Promise<ProblemEntity> {
+    return await this.problemRepository.findOne(id);
+  }
+
+  public async findProblemByDisplayId(displayId: number): Promise<ProblemEntity> {
+    return await this.problemRepository.findOne({ displayId });
+  }
+
   public async getProblemMeta(
     problem: ProblemEntity,
     queryTags: boolean,

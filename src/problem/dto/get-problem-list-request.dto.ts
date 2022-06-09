@@ -1,5 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsBoolean, IsIn, IsInt, IsOptional, IsString, Min } from 'class-validator';
+import {
+  IsArray,
+  IsBoolean,
+  IsIn,
+  IsInt,
+  IsOptional,
+  IsString,
+  Length,
+  Min,
+} from 'class-validator';
 
 export class GetProblemListRequestDto {
   @ApiProperty({ enum: ['id', 'title', 'submissionCount', 'acceptedSubmissionCount'] })
@@ -22,14 +31,19 @@ export class GetProblemListRequestDto {
 
   @ApiProperty({ nullable: true })
   @IsString()
+  @Length(0, 80)
   @IsOptional()
-  readonly keyword: string;
+  readonly keyword?: string;
+
+  @ApiProperty()
+  @IsBoolean()
+  readonly keywordMatchesId: boolean;
 
   @ApiProperty({ nullable: true })
   @IsInt({ each: true })
   @IsArray()
   @IsOptional()
-  readonly tagIds: number[];
+  readonly tagIds?: number[];
 
   @ApiProperty()
   @IsBoolean()

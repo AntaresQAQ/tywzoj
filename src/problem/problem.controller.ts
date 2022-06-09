@@ -49,6 +49,18 @@ export class ProblemController {
       currentUser,
     );
 
+    if (request.keyword && request.keywordMatchesId) {
+      const matchDisplayId = Number.isSafeInteger(Number(request.keyword))
+        ? Number(request.keyword) || 0
+        : 0;
+      if (!problems.some(problem => problem.id === matchDisplayId)) {
+        const problem = await this.problemService.findProblemByDisplayId(matchDisplayId);
+        if (problem && this.problemService.problemIsAllowedView(problem, currentUser))
+          problems.unshift(problem);
+        while (problems.length > request.takeCount) problems.pop();
+      }
+    }
+
     return {
       count: count,
       problemMetas: await Promise.all(
