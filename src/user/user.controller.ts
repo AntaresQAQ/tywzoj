@@ -21,7 +21,6 @@ import { UserService } from './user.service';
 export class UserController {
   constructor(readonly userService: UserService, readonly configService: ConfigService) {}
 
-  @Recaptcha()
   @Post('getUserDetail')
   @ApiOperation({
     summary: 'A request to get user meta.',
@@ -41,11 +40,9 @@ export class UserController {
     };
   }
 
-  @Recaptcha()
   @Post('getUserList')
   @ApiOperation({
     summary: 'A request to get user list.',
-    description: 'Recaptcha required.',
   })
   @ApiBearerAuth()
   async getUserList(

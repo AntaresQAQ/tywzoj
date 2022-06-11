@@ -26,9 +26,7 @@ export class ProblemController {
 
   @ApiOperation({
     summary: 'A request to get list of problem which can be saw by current user',
-    description: 'Recaptcha required.',
   })
-  @Recaptcha()
   @Post('getProblemList')
   async getProblemList(
     @CurrentUser() currentUser: UserEntity,
@@ -73,9 +71,7 @@ export class ProblemController {
 
   @ApiOperation({
     summary: 'A request to get all tags',
-    description: 'Recaptcha required.',
   })
-  @Recaptcha()
   @Post('getProblemTagList')
   async getProblemTagList(
     @CurrentUser() currentUser: UserEntity,
