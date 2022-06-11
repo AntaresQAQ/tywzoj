@@ -21,4 +21,7 @@ export class ProblemSampleEntity {
 
   @Column({ type: 'text', nullable: true })
   output: string;
+
+  @Column({ type: 'text', nullable: true })
+  explanation: string;
 }
