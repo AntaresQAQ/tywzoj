@@ -1,12 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectConnection, InjectRepository } from '@nestjs/typeorm';
 import { Connection, Repository } from 'typeorm';
 
 import { escapeLike } from '@/database/database.utils';
-import { ProblemMetaDto, ProblemTagMetaDto } from '@/problem/dto';
+import { ProblemContentDto, ProblemMetaDto, ProblemTagMetaDto } from '@/problem/dto';
 import { ProblemTagEntity, ProblemTagType } from '@/problem/problem-tag.entity';
 import { ProblemTagMapEntity } from '@/problem/problem-tag-map.entity';
 import { UserEntity, UserType } from '@/user/user.entity';
+import { UserService } from '@/user/user.service';
 
 import { ProblemEntity, ProblemPermission } from './problem.entity';
 
@@ -21,6 +22,8 @@ export class ProblemService {
     private readonly problemTagRepository: Repository<ProblemTagEntity>,
     @InjectRepository(ProblemTagMapEntity)
     private readonly problemTagMapRepository: Repository<ProblemTagMapEntity>,
+    @Inject(forwardRef(() => UserService))
+    private readonly userService: UserService,
   ) {}
 
   public problemIsAllowedView(problem: ProblemEntity, user: UserEntity): boolean {
@@ -87,6 +90,25 @@ export class ProblemService {
     }
 
     return meta;
+  }
+
+  async getProblemContent(
+    problem: ProblemEntity,
+    currentUser: UserEntity,
+  ): Promise<ProblemContentDto> {
+    return {
+      description: problem.description,
+      inputFormat: problem.inputFormat,
+      outputFormat: problem.outputFormat,
+      limitAndHint: problem.limitAndHint,
+      type: problem.type,
+      owner: await this.userService.getUserMeta(await problem.owner, currentUser),
+      samples: (await problem.samples).map(sample => ({
+        input: sample.input,
+        output: sample.output,
+        explanation: sample.explanation,
+      })),
+    };
   }
 
   async findProblemsByExistingIds(problemIds: number[]): Promise<ProblemEntity[]> {

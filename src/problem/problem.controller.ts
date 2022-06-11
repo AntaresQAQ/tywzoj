@@ -1,12 +1,14 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Recaptcha } from '@nestlab/google-recaptcha';
 
 import { CurrentUser } from '@/common/user.decorator';
 import { ConfigService } from '@/config/config.service';
 import { UserEntity } from '@/user/user.entity';
 
 import {
+  GetProblemDetailRequestDto,
+  GetProblemDetailResponseDto,
+  GetProblemDetailResponseError,
   GetProblemListRequestDto,
   GetProblemListResponseDto,
   GetProblemListResponseError,
@@ -66,6 +68,25 @@ export class ProblemController {
           this.problemService.getProblemMeta(problem, request.showTags, true, currentUser),
         ),
       ),
+    };
+  }
+
+  @ApiOperation({
+    summary: 'A request to get problem detail',
+  })
+  @Post('getProblemDetail')
+  async getProblemDetail(
+    @CurrentUser() currentUser: UserEntity,
+    @Body() request: GetProblemDetailRequestDto,
+  ): Promise<GetProblemDetailResponseDto> {
+    if (!currentUser) return { error: GetProblemDetailResponseError.NOT_LOGGED };
+    const problem = await this.problemService.findProblemByDisplayId(request.displayId);
+    if (!problem) return { error: GetProblemDetailResponseError.NO_SUCH_PROBLEM };
+    if (!this.problemService.problemIsAllowedView(problem, currentUser))
+      return { error: GetProblemDetailResponseError.PERMISSION_DENIED };
+    return {
+      problemMeta: await this.problemService.getProblemMeta(problem, true, false, currentUser),
+      problemContent: await this.problemService.getProblemContent(problem, currentUser),
     };
   }
 
