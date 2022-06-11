@@ -49,6 +49,7 @@ async function bootstrap() {
     app.enableCors({
       origin: configService.config.security.crossOrigin.whitelist,
       optionsSuccessStatus: 200,
+      maxAge: 7200,
     });
   }
 
