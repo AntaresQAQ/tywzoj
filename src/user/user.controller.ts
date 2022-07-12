@@ -51,7 +51,6 @@ export class UserController {
   @Post('getUserDetail')
   @ApiOperation({
     summary: 'A request to get user meta.',
-    description: 'Recaptcha required.',
   })
   @ApiBearerAuth()
   async getUserDetail(
