@@ -47,5 +47,8 @@ rules:
       suffix: [Async]
   '@typescript-eslint/no-explicit-any': error
   '@typescript-eslint/no-duplicate-enum-values': error
-  '@typescript-eslint/no-unused-vars': error
+  '@typescript-eslint/no-unused-vars':
+    - error
+    - vars: local
+      args: after-used
   '@typescript-eslint/prefer-as-const': error
