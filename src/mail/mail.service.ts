@@ -1,14 +1,14 @@
-import { Injectable } from '@nestjs/common';
-import ejs from 'ejs';
-import nodemailer from 'nodemailer';
-import { join } from 'path';
+import { Injectable } from "@nestjs/common";
+import ejs from "ejs";
+import nodemailer from "nodemailer";
+import { join } from "path";
 
-import { ConfigService } from '@/config/config.service';
+import { ConfigService } from "@/config/config.service";
 
-export enum MailTemplate {
-  RegisterVerificationCode = 'register-verification-code',
-  ResetPasswordVerificationCode = 'reset-password-verification-code',
-  ChangeEmailVerificationCode = 'change-email-verification-code',
+export const enum CE_MailTemplate {
+  RegisterVerificationCode = "register-verification-code",
+  ResetPasswordVerificationCode = "reset-password-verification-code",
+  ChangeEmailVerificationCode = "change-email-verification-code",
 }
 
 @Injectable()
@@ -19,19 +19,16 @@ export class MailService {
     this.transporter = nodemailer.createTransport(this.configService.config.service.mail.transport);
   }
 
-  private async render(
-    template: MailTemplate,
-    data: Record<string, unknown>,
-  ): Promise<[string, string]> {
-    const templateFile = join(__dirname, 'templates', `${template}.ejs`);
+  private async renderAsync(template: CE_MailTemplate, data: Record<string, unknown>): Promise<[string, string]> {
+    const templateFile = join(__dirname, "templates", `${template}.ejs`);
     const renderResult = (
       await ejs.renderFile(templateFile, {
         ...data,
         siteName: this.configService.config.preference.siteName,
       })
     ).trim();
-    const [subject, ...contentLines] = renderResult.split('\n');
-    const content = contentLines.join('\n');
+    const [subject, ...contentLines] = renderResult.split("\n");
+    const content = contentLines.join("\n");
     return [subject, content];
   }
 
@@ -43,12 +40,8 @@ export class MailService {
    * @param recipient The recipient email address
    * @returns The error message. Falsy on success.
    */
-  async sendMail(
-    template: MailTemplate,
-    data: Record<string, unknown>,
-    recipient: string,
-  ): Promise<string> {
-    const [subject, content] = await this.render(template, data);
+  async sendMailAsync(template: CE_MailTemplate, data: Record<string, unknown>, recipient: string): Promise<string> {
+    const [subject, content] = await this.renderAsync(template, data);
     try {
       await this.transporter.sendMail({
         from: `${this.configService.config.preference.siteName} <${this.configService.config.service.mail.address}>`,
