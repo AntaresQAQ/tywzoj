@@ -1,6 +1,6 @@
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { TypeOrmModule } from "@nestjs/typeorm";
 
-import { ConfigService } from '@/config/config.service';
+import { ConfigService } from "@/config/config.service";
 
 export const databaseProviders = [
   TypeOrmModule.forRootAsync({
@@ -14,7 +14,7 @@ export const databaseProviders = [
       entities: [`${__dirname}/../**/*.entity{.ts,.js}`],
       logging: !!process.env.TYWZOJ_LOG_SQL,
       synchronize: true,
-      charset: 'utf8mb4',
+      charset: "utf8mb4",
     }),
     inject: [ConfigService],
   }),
