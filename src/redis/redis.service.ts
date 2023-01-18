@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 // https://github.com/lyrio-dev/lyrio/blob/2b448a28a3f652b9bcb2502a10ba37c7b408fefe/src/redis/redis.service.ts
 
-import { Injectable, OnModuleInit } from '@nestjs/common';
-import Redis from 'ioredis';
+import { Injectable, OnModuleInit } from "@nestjs/common";
+import Redis from "ioredis";
 
-import { ConfigService } from '@/config/config.service';
+import { ConfigService } from "@/config/config.service";
 
 const REDIS_CACHE_EXPIRE_TIME = 60 * 60 * 24 * 30; // 7 days
 
@@ -19,8 +20,8 @@ export class RedisService implements OnModuleInit {
     });
 
     this.untilReady = new Promise((resolve, reject) => {
-      this.client.once('ready', resolve);
-      this.client.once('error', reject);
+      this.client.once("ready", resolve);
+      this.client.once("error", reject);
     });
   }
 
