@@ -1,7 +1,7 @@
-import { Global, Module } from '@nestjs/common';
+import { Global, Module } from "@nestjs/common";
 
-import { RecaptchaFilter } from './recaptcha.filter';
-import { recaptchaProviders } from './recaptcha.providers';
+import { RecaptchaFilter } from "./recaptcha.filter";
+import { recaptchaProviders } from "./recaptcha.providers";
 
 @Global()
 @Module({
