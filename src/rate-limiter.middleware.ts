@@ -1,9 +1,9 @@
-import { Injectable, NestMiddleware } from '@nestjs/common';
-import { Request, Response } from 'express';
-import { cidrSubnet, SubnetInfo } from 'ip';
-import { RateLimiterAbstract, RateLimiterMemory } from 'rate-limiter-flexible';
+import { Injectable, NestMiddleware } from "@nestjs/common";
+import { Request, Response } from "express";
+import { cidrSubnet, SubnetInfo } from "ip";
+import { RateLimiterAbstract, RateLimiterMemory } from "rate-limiter-flexible";
 
-import { ConfigService } from '@/config/config.service';
+import { ConfigService } from "@/config/config.service";
 
 @Injectable()
 export class RateLimiterMiddleware implements NestMiddleware {
@@ -18,9 +18,7 @@ export class RateLimiterMiddleware implements NestMiddleware {
         points: this.configService.config.security.rateLimit.maxRequests,
         duration: this.configService.config.security.rateLimit.durationSeconds,
       });
-      this.whitelist = this.configService.config.security.rateLimit.whitelist.map(value =>
-        cidrSubnet(value),
-      );
+      this.whitelist = this.configService.config.security.rateLimit.whitelist.map(value => cidrSubnet(value));
     }
   }
 
@@ -32,7 +30,7 @@ export class RateLimiterMiddleware implements NestMiddleware {
         this.rateLimiter
           .consume(req.ip)
           .then(() => next())
-          .catch(() => res.status(429).send('Too Many Requests'));
+          .catch(() => res.status(429).send("Too Many Requests"));
       }
     } else {
       next();
