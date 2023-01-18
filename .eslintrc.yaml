@@ -40,7 +40,11 @@ rules:
       prefix: [I]
     - selector: enum
       format: [PascalCase]
-      prefix: [CE_]
+      prefix: [CE_, E_] # CE_ for const enum and E_ for enum
+    - selector: [function, classMethod]
+      modifiers: [async]
+      format: [camelCase, PascalCase]
+      suffix: [Async]
   '@typescript-eslint/no-explicit-any': error
   '@typescript-eslint/no-duplicate-enum-values': error
   '@typescript-eslint/no-unused-vars': error
