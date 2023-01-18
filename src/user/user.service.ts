@@ -16,15 +16,15 @@ export class UserService {
   ) {}
 
   async findUserByIdAsync(id: number): Promise<UserEntity> {
-    return await this.userRepository.findOne({ id });
+    return await this.userRepository.findOne({ where: { id } });
   }
 
   async findUserByUsernameAsync(username: string): Promise<UserEntity> {
-    return await this.userRepository.findOne({ username });
+    return await this.userRepository.findOne({ where: { username } });
   }
 
   async findUserByEmailAsync(email: string): Promise<UserEntity> {
-    return await this.userRepository.findOne({ email });
+    return await this.userRepository.findOne({ where: { email } });
   }
 
   async findUserListAsync(
@@ -80,21 +80,25 @@ export class UserService {
   }
 
   async checkUsernameAvailabilityAsync(username: string): Promise<boolean> {
-    return (await this.userRepository.count({ username })) === 0;
+    return (await this.userRepository.count({ where: { username } })) === 0;
   }
 
   async checkEmailAvailabilityAsync(email: string): Promise<boolean> {
-    return (await this.userRepository.count({ email })) === 0;
+    return (await this.userRepository.count({ where: { email } })) === 0;
   }
 
   checkIsAllowedEdit(user: UserEntity, currentUser: UserEntity) {
     return (
-      this.checkIsAllowedView(currentUser) && (user.id === currentUser.id || this.checkIsAllowedManage(currentUser))
+      this.checkIsAllowedView(currentUser) &&
+      (user.id === currentUser.id || this.checkIsAllowedManage(user, currentUser))
     );
   }
 
-  checkIsAllowedManage(currentUser: UserEntity) {
-    return checkIsAllowed(currentUser.level, CE_Permissions.ManageUser);
+  checkIsAllowedManage(user: UserEntity, currentUser: UserEntity) {
+    return (
+      checkIsAllowed(currentUser.level, CE_Permissions.ManageUser) &&
+      (currentUser.level > user.level || user.id === currentUser.id)
+    );
   }
 
   checkIsAllowedView(currentUser: UserEntity) {

@@ -79,7 +79,10 @@ export class UserController {
 
     if (!this.userService.checkIsAllowedEdit(user, currentUser)) throw new PermissionDeniedException();
 
-    if (!isEmptyValues(body.username, body.email, body.level) && !this.userService.checkIsAllowedManage(currentUser)) {
+    if (
+      !isEmptyValues(body.username, body.email, body.level) &&
+      !this.userService.checkIsAllowedManage(user, currentUser)
+    ) {
       throw new PermissionDeniedException();
     }
 
