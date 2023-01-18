@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { ApiProperty } from "@nestjs/swagger";
+import { Type } from "class-transformer";
 import {
   IsArray,
   IsBoolean,
@@ -11,11 +11,11 @@ import {
   IsString,
   Min,
   ValidateNested,
-} from 'class-validator';
+} from "class-validator";
 
-import { IsCIDR, IsPortNumber } from '@/common/validators';
+import { IsCIDR, IsPortNumber } from "@/common/validators";
 
-import { ConfigRelation, ConfigRelationType } from './config-relation.decorator';
+import { CE_ConfigRelationType, ConfigRelation } from "./config-relation.decorator";
 
 // BEGIN ServerConfig
 
@@ -36,8 +36,8 @@ class ServerConfig {
 // BEGIN ServiceConfig
 
 class DatabaseServiceConfig {
-  @IsIn(['mysql', 'mariadb'])
-  readonly type: 'mysql' | 'mariadb';
+  @IsIn(["mysql", "mariadb"])
+  readonly type: "mysql" | "mariadb";
 
   @IsString()
   readonly host: string;
@@ -252,79 +252,79 @@ class SecurityPreferenceConfig {
 class PaginationPreferenceConfig {
   @IsInt()
   @Min(1)
-  @ConfigRelation('queryLimit.article', ConfigRelationType.LessThanOrEqual)
+  @ConfigRelation("queryLimit.article", CE_ConfigRelationType.LessThanOrEqual)
   @ApiProperty({ minimum: 1 })
   readonly homepageNotice: number;
 
   @IsInt()
   @Min(1)
-  @ConfigRelation('queryLimit.userList', ConfigRelationType.LessThanOrEqual)
+  @ConfigRelation("queryLimit.userList", CE_ConfigRelationType.LessThanOrEqual)
   @ApiProperty({ minimum: 1 })
   readonly homepageUserList: number;
 
   @IsInt()
   @Min(1)
-  @ConfigRelation('queryLimit.contest', ConfigRelationType.LessThanOrEqual)
+  @ConfigRelation("queryLimit.contest", CE_ConfigRelationType.LessThanOrEqual)
   @ApiProperty({ minimum: 1 })
   readonly homepageContest: number;
 
   @IsInt()
   @Min(1)
-  @ConfigRelation('queryLimit.homework', ConfigRelationType.LessThanOrEqual)
+  @ConfigRelation("queryLimit.homework", CE_ConfigRelationType.LessThanOrEqual)
   @ApiProperty({ minimum: 1 })
   readonly homepageHomework: number;
 
   @IsInt()
   @Min(1)
-  @ConfigRelation('queryLimit.problem', ConfigRelationType.LessThanOrEqual)
+  @ConfigRelation("queryLimit.problem", CE_ConfigRelationType.LessThanOrEqual)
   @ApiProperty({ minimum: 1 })
   readonly problem: number;
 
   @IsInt()
   @Min(1)
-  @ConfigRelation('queryLimit.problemSet', ConfigRelationType.LessThanOrEqual)
+  @ConfigRelation("queryLimit.problemSet", CE_ConfigRelationType.LessThanOrEqual)
   @ApiProperty({ minimum: 1 })
   readonly problemSet: number;
 
   @IsInt()
   @Min(1)
-  @ConfigRelation('queryLimit.submission', ConfigRelationType.LessThanOrEqual)
+  @ConfigRelation("queryLimit.submission", CE_ConfigRelationType.LessThanOrEqual)
   @ApiProperty({ minimum: 1 })
   readonly submission: number;
 
   @IsInt()
   @Min(1)
-  @ConfigRelation('queryLimit.submissionStatistic', ConfigRelationType.LessThanOrEqual)
+  @ConfigRelation("queryLimit.submissionStatistic", CE_ConfigRelationType.LessThanOrEqual)
   @ApiProperty({ minimum: 1 })
   readonly submissionStatistic: number;
 
   @IsInt()
   @Min(1)
-  @ConfigRelation('queryLimit.homework', ConfigRelationType.LessThanOrEqual)
+  @ConfigRelation("queryLimit.homework", CE_ConfigRelationType.LessThanOrEqual)
   @ApiProperty({ minimum: 1 })
   readonly homework: number;
 
   @IsInt()
   @Min(1)
-  @ConfigRelation('queryLimit.contest', ConfigRelationType.LessThanOrEqual)
+  @ConfigRelation("queryLimit.contest", CE_ConfigRelationType.LessThanOrEqual)
   @ApiProperty({ minimum: 1 })
   readonly contest: number;
 
   @IsInt()
   @Min(1)
-  @ConfigRelation('queryLimit.article', ConfigRelationType.LessThanOrEqual)
+  @ConfigRelation("queryLimit.article", CE_ConfigRelationType.LessThanOrEqual)
   @ApiProperty({ minimum: 1 })
   readonly article: number;
 
   @IsInt()
   @Min(1)
-  @ConfigRelation('queryLimit.articleReply', ConfigRelationType.LessThanOrEqual)
+  @ConfigRelation("queryLimit.articleReply", CE_ConfigRelationType.LessThanOrEqual)
   @ApiProperty({ minimum: 1 })
   readonly articleReply: number;
 
   @IsInt()
   @Min(1)
-  @ConfigRelation('queryLimit.userList', ConfigRelationType.LessThanOrEqual)
+  @ConfigRelation("queryLimit.userList", CE_ConfigRelationType.LessThanOrEqual)
   @ApiProperty({ minimum: 1 })
   readonly userList: number;
 }
@@ -335,9 +335,9 @@ class MiscPreferenceConfig {
   @ApiProperty()
   readonly gravatarCdn: string;
 
-  @IsIn(['id', 'rating', 'acceptedProblemCount'])
-  @ApiProperty({ enum: ['acceptedProblemCount', 'rating', 'id'] })
-  readonly sortUserBy: 'id' | 'rating' | 'acceptedProblemCount';
+  @IsIn(["id", "rating", "acceptedProblemCount"])
+  @ApiProperty({ enum: ["acceptedProblemCount", "rating", "id"] })
+  readonly sortUserBy: "id" | "rating" | "acceptedProblemCount";
 
   @IsBoolean()
   @ApiProperty()

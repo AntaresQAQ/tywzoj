@@ -1,10 +1,10 @@
-import { instanceToInstance, plainToInstance } from 'class-transformer';
-import { validateSync } from 'class-validator';
-import { readFileSync } from 'fs-extra';
-import { load } from 'js-yaml';
+import { instanceToInstance, plainToInstance } from "class-transformer";
+import { validateSync } from "class-validator";
+import { readFileSync } from "fs-extra";
+import { load } from "js-yaml";
 
-import { AppConfig, PreferenceConfig } from './config.schema';
-import { checkConfigRelation } from './config-relation.decorator';
+import { AppConfig, PreferenceConfig } from "./config.schema";
+import { checkConfigRelation } from "./config-relation.decorator";
 
 export class ConfigService {
   readonly config: AppConfig;
@@ -13,9 +13,7 @@ export class ConfigService {
   constructor() {
     const filePath = process.env.TYWZOJ_CONFIG_FILE;
     if (!filePath) {
-      throw new Error(
-        'Please specify configuration file with environment variable TYWZOJ_CONFIG_FILE',
-      );
+      throw new Error("Please specify configuration file with environment variable TYWZOJ_CONFIG_FILE");
     }
 
     const config = load(readFileSync(filePath).toString());

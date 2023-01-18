@@ -1,33 +1,33 @@
-import objectPath from 'object-path';
+import objectPath from "object-path";
 
-export enum ConfigRelationType {
-  LessThan = 'LessThan',
-  LessThanOrEqual = 'LessThanOrEqual',
-  MoreThan = 'MoreThan',
-  MoreThanOrEqual = 'MoreThanOrEqual',
+export const enum CE_ConfigRelationType {
+  LessThan = "LessThan",
+  LessThanOrEqual = "LessThanOrEqual",
+  MoreThan = "MoreThan",
+  MoreThanOrEqual = "MoreThanOrEqual",
 }
 
-function satisfy(thisValue: number, referencedValue: number, relationType: ConfigRelationType) {
+function satisfy(thisValue: number, referencedValue: number, relationType: CE_ConfigRelationType) {
   switch (relationType) {
-    case ConfigRelationType.LessThan:
+    case CE_ConfigRelationType.LessThan:
       return thisValue < referencedValue;
-    case ConfigRelationType.LessThanOrEqual:
+    case CE_ConfigRelationType.LessThanOrEqual:
       return thisValue <= referencedValue;
-    case ConfigRelationType.MoreThan:
+    case CE_ConfigRelationType.MoreThan:
       return thisValue > referencedValue;
-    case ConfigRelationType.MoreThanOrEqual:
+    case CE_ConfigRelationType.MoreThanOrEqual:
       return thisValue >= referencedValue;
     default:
       return false;
   }
 }
 
-export interface ConfigRelationMetadata {
+export interface IConfigRelationMetadata {
   referencedValuePath: string;
-  relationType: ConfigRelationType;
+  relationType: CE_ConfigRelationType;
 }
 
-const CONFIG_RELATION_METADATA_KEY = 'config-relation';
+const CONFIG_RELATION_METADATA_KEY = "config-relation";
 
 /**
  * Ensure this config item must satisfy `relationType` relation comparing to `referencedValuePath`
@@ -36,8 +36,8 @@ const CONFIG_RELATION_METADATA_KEY = 'config-relation';
  * @param referencedValuePath
  * @param relationType
  */
-export function ConfigRelation(referencedValuePath: string, relationType: ConfigRelationType) {
-  return Reflect.metadata(CONFIG_RELATION_METADATA_KEY, <ConfigRelationMetadata>{
+export function ConfigRelation(referencedValuePath: string, relationType: CE_ConfigRelationType) {
+  return Reflect.metadata(CONFIG_RELATION_METADATA_KEY, <IConfigRelationMetadata>{
     referencedValuePath,
     relationType,
   });
@@ -51,14 +51,10 @@ function checkConfigRelationRecursively(
   if (!configSubtree) return;
 
   Object.keys(configSubtree).forEach(key => {
-    const metadata = Reflect.getMetadata(
-      CONFIG_RELATION_METADATA_KEY,
-      configSubtree,
-      key,
-    ) as ConfigRelationMetadata;
+    const metadata = Reflect.getMetadata(CONFIG_RELATION_METADATA_KEY, configSubtree, key) as IConfigRelationMetadata;
     const item = configSubtree[key];
 
-    if (typeof item === 'number' && metadata) {
+    if (typeof item === "number" && metadata) {
       const thisValue = item;
       const referencedValue = objectPath.get(configRoot, metadata.referencedValuePath) as number;
       if (!satisfy(thisValue, referencedValue, metadata.relationType)) {
@@ -68,16 +64,12 @@ function checkConfigRelationRecursively(
       }
     }
 
-    if (typeof item === 'object') {
-      checkConfigRelationRecursively(
-        item as Record<string, unknown>,
-        `${currentPath}.${key}`,
-        configRoot,
-      );
+    if (typeof item === "object") {
+      checkConfigRelationRecursively(item as Record<string, unknown>, `${currentPath}.${key}`, configRoot);
     }
   });
 }
 
 export function checkConfigRelation(config: Record<string, unknown>) {
-  checkConfigRelationRecursively(config, '', config);
+  checkConfigRelationRecursively(config, "", config);
 }
