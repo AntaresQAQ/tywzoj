@@ -1,32 +1,33 @@
-import { Injectable, NestMiddleware } from '@nestjs/common';
-import { AsyncLocalStorage } from 'async_hooks';
-import { Request, Response } from 'express';
+import { Injectable, NestMiddleware } from "@nestjs/common";
+import { AsyncLocalStorage } from "async_hooks";
+import { Request, Response } from "express";
 
-import { UserEntity } from '@/user/user.entity';
+import { UserEntity } from "@/user/user.entity";
 
-import { AuthSessionService } from './auth-session.service';
+import { AuthSessionService } from "./auth-session.service";
 
 const asyncLocalStorage = new AsyncLocalStorage();
 
-export interface Session {
+export interface ISession {
   sessionKey?: string;
   sessionId?: number;
   user?: UserEntity;
 }
 
-export interface RequestWithSession extends Request {
-  session: Session;
+export interface IRequestWithSession extends Request {
+  session: ISession;
 }
 
 @Injectable()
 export class AuthMiddleware implements NestMiddleware {
   constructor(private readonly authSessionService: AuthSessionService) {}
 
-  async use(req: RequestWithSession, res: Response, next: () => void): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  async use(req: IRequestWithSession, res: Response, next: () => void): Promise<void> {
     const authHeader = req.headers.authorization;
-    const sessionKey = authHeader && authHeader.split(' ')[1];
+    const sessionKey = authHeader && authHeader.split(" ")[1];
     if (sessionKey) {
-      const [sessionId, user] = await this.authSessionService.accessSession(sessionKey);
+      const [sessionId, user] = await this.authSessionService.accessSessionAsync(sessionKey);
       if (user) {
         req.session = {
           sessionKey,
@@ -46,6 +47,6 @@ export class AuthMiddleware implements NestMiddleware {
  * Calling it in a EventEmitter's callback may be not working since EventEmitter's callbacks
  * run in different contexts.
  */
-export function getCurrentRequest(): RequestWithSession {
-  return asyncLocalStorage.getStore() as RequestWithSession;
+export function getCurrentRequest(): IRequestWithSession {
+  return asyncLocalStorage.getStore() as IRequestWithSession;
 }

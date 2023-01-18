@@ -1,16 +1,16 @@
-import { Column, Entity, JoinColumn, OneToOne, PrimaryColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToOne, PrimaryColumn } from "typeorm";
 
-import { UserEntity } from '@/user/user.entity';
+import { UserEntity } from "@/user/user.entity";
 
-@Entity('auth')
+@Entity("auth")
 export class AuthEntity {
-  @OneToOne(() => UserEntity, user => user.auth)
+  @OneToOne(() => UserEntity, user => user.authPromise)
   @JoinColumn()
-  user: Promise<UserEntity>;
+  userPromise: Promise<UserEntity>;
 
   @PrimaryColumn()
   userId: number;
 
-  @Column({ type: 'char', length: 60 })
+  @Column({ type: "char", length: 60 })
   password: string;
 }

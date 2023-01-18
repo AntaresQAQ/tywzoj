@@ -1,43 +1,36 @@
-import { Body, Controller, Post, Req } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Recaptcha } from '@nestlab/google-recaptcha';
+import { Body, Controller, Get, Post, Query, Req } from "@nestjs/common";
+import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { Recaptcha } from "@nestlab/google-recaptcha";
 
-import { CurrentUser } from '@/common/user.decorator';
-import { ConfigService } from '@/config/config.service';
-import { MailService, MailTemplate } from '@/mail/mail.service';
-import { appGitRepoInfo } from '@/main';
-import { UserEntity } from '@/user/user.entity';
-import { UserService } from '@/user/user.service';
+import { PermissionDeniedException } from "@/common/exception";
+import { CurrentUser } from "@/common/user.decorator";
+import { ConfigService } from "@/config/config.service";
+import { CE_MailTemplate, MailService } from "@/mail/mail.service";
+import { appGitRepoInfo } from "@/main";
+import { UserEntity } from "@/user/user.entity";
+import { UserService } from "@/user/user.service";
 
-import { RequestWithSession } from './auth.middleware';
-import { AuthService } from './auth.service';
-import { AuthSessionService } from './auth-session.service';
 import {
-  AuthVerificationCodeService,
-  VerificationCodeType,
-} from './auth-verification-code.service';
-import {
-  GetSessionInfoRequestDto,
-  GetSessionInfoResponseDto,
-  LoginRequestDto,
-  LoginResponseDto,
-  LoginResponseError,
-  LogoutResponseDto,
-  LogoutResponseError,
-  RegisterRequestDto,
-  RegisterResponseDto,
-  RegisterResponseError,
-  ResetPasswordRequestDto,
-  ResetPasswordResponseDto,
-  ResetPasswordResponseError,
-  ResetPasswordType,
-  SendVerificationCodeRequestDto,
-  SendVerificationCodeResponseDto,
-  SendVerificationCodeResponseError,
-} from './dto';
+  AlreadyLoggedInException,
+  DuplicateEmailException,
+  FailedToSendEmailVerificationCodeException,
+  InvalidEmailVerificationCodeException,
+  NoSuchUserException,
+  NotLoggedInException,
+  WrongPasswordException,
+} from "./auth.exception";
+import { IRequestWithSession } from "./auth.middleware";
+import { AuthService } from "./auth.service";
+import { AuthSessionService } from "./auth-session.service";
+import { AuthVerificationCodeService, CE_VerificationCodeType } from "./auth-verification-code.service";
+import { PostLoginRequestBodyDto, PostLoginResponseDto } from "./dto/login.dto";
+import { PostResetForgotPasswordBodyDto, PostResetPasswordBodyDto } from "./dto/reset-password.dto";
+import { PostRegisterRequestBodyDto, PostRegisterResponseDto } from "./dto/resister.dto";
+import { PostSendEmailVerificationCodeRequestBodyDto } from "./dto/send-email-verification-code.dto";
+import { GetSessionInfoRequestQueryDto, GetSessionInfoResponseDto } from "./dto/session-info.dto";
 
-@ApiTags('Auth')
-@Controller('auth')
+@ApiTags("Auth")
+@Controller("auth")
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
@@ -48,289 +41,222 @@ export class AuthController {
     private readonly mailService: MailService,
   ) {}
 
-  @Post('getSessionInfo')
+  @Get("sessionInfo")
   @ApiOperation({
-    summary: "A request to get current user's info and server preference.",
+    summary: "A HTTP GET request to get current user's info and server preference.",
   })
-  async getSessionInfo(
-    @Body() request: GetSessionInfoRequestDto,
-  ): Promise<GetSessionInfoResponseDto> {
-    const [, user] = await this.authSessionService.accessSession(request.token);
-    const result: GetSessionInfoResponseDto = {
+  async getSessionInfoAsync(@Query() query: GetSessionInfoRequestQueryDto): Promise<GetSessionInfoResponseDto> {
+    const [, user] = await this.authSessionService.accessSessionAsync(query.token);
+
+    return {
       serverVersion: {
         hash: appGitRepoInfo.abbreviatedSha,
         date: appGitRepoInfo.committerDate,
       },
       preference: this.configService.preferenceConfigToBeSentToUser,
+      userBaseDetail: user && this.userService.getUserBaseDetail(user, user),
     };
-
-    if (user) {
-      result.userMeta = await this.userService.getUserMeta(user, user);
-    }
-
-    return result;
   }
 
-  @Recaptcha()
-  @Post('login')
+  @Post("login")
   @ApiOperation({
-    summary: 'A request to login.',
-    description: 'Recaptcha required.',
+    summary: "A HTTP POST request to login.",
+    description: "Recaptcha required.",
   })
   @ApiBearerAuth()
-  async login(
-    @Req() req: RequestWithSession,
+  @Recaptcha()
+  async loginAsync(
+    @Req() req: IRequestWithSession,
     @CurrentUser() currentUser: UserEntity,
-    @Body() request: LoginRequestDto,
-  ): Promise<LoginResponseDto> {
-    if (currentUser) return { error: LoginResponseError.ALREADY_LOGGED };
+    @Body() body: PostLoginRequestBodyDto,
+  ): Promise<PostLoginResponseDto> {
+    if (currentUser) throw new AlreadyLoggedInException();
 
     let user: UserEntity;
 
-    if (request.username) {
-      user = await this.userService.findUserByUsername(request.username);
-    } else if (request.email) {
-      user = await this.userService.findUserByEmail(request.email);
-    } else {
-      return { error: LoginResponseError.NO_SUCH_USER };
+    if (body.username) {
+      user = await this.userService.findUserByUsernameAsync(body.username);
+    } else if (body.email) {
+      user = await this.userService.findUserByEmailAsync(body.email);
     }
-    if (!user) return { error: LoginResponseError.NO_SUCH_USER };
-    if (user.isBlocked) return { error: LoginResponseError.ACCOUNT_BLOCKED };
-    const auth = await this.authService.findAuthByUserId(user.id);
-    if (!(await this.authService.checkPassword(auth, request.password))) {
-      return { error: LoginResponseError.WRONG_PASSWORD };
-    }
+
+    if (!user) throw new NoSuchUserException();
+    if (!this.authService.checkIsAllowedLogin(user)) throw new PermissionDeniedException();
+
+    const auth = await this.authService.findAuthByUserIdAsync(user.id);
+    if (!(await this.authService.checkPasswordAsync(auth, body.password))) throw new WrongPasswordException();
+
     return {
-      token: await this.authSessionService.newSession(user, req.ip, req.headers['user-agent']),
-      userMeta: await this.userService.getUserMeta(user, user),
+      token: await this.authSessionService.newSessionAsync(user, req.ip, req.headers["user-agent"]),
+      userBaseDetail: this.userService.getUserBaseDetail(user, user),
     };
   }
 
-  @Post('logout')
+  @Post("logout")
   @ApiOperation({
-    summary: 'A request to logout current session',
+    summary: "A HTTP POST request to logout current session",
   })
   @ApiBearerAuth()
-  async logout(@Req() req: RequestWithSession): Promise<LogoutResponseDto> {
+  async logoutAsync(@Req() req: IRequestWithSession) {
     const sessionKey = req?.session?.sessionKey;
-    if (sessionKey) {
-      await this.authSessionService.endSession(sessionKey);
-      return { status: 'SUCCESS' };
-    } else {
-      return { error: LogoutResponseError.NOT_LOGGED };
-    }
+
+    if (!sessionKey) throw new NotLoggedInException();
+
+    await this.authSessionService.endSessionAsync(sessionKey);
   }
 
-  @Recaptcha()
-  @Post('register')
+  @Post("register")
   @ApiOperation({
-    summary: 'A request to register a new user.',
-    description: 'Recaptcha required.',
+    summary: "A HTTP POST request to register a new user.",
+    description: "Recaptcha required.",
   })
   @ApiBearerAuth()
-  async register(
-    @Req() req: RequestWithSession,
+  @Recaptcha()
+  async registerAsync(
+    @Req() req: IRequestWithSession,
     @CurrentUser() currentUser: UserEntity,
-    @Body() request: RegisterRequestDto,
-  ): Promise<RegisterResponseDto> {
-    if (currentUser) return { error: RegisterResponseError.ALREADY_LOGGED };
+    @Body() body: PostRegisterRequestBodyDto,
+  ): Promise<PostRegisterResponseDto> {
+    if (currentUser) throw new AlreadyLoggedInException();
 
-    const [error, user] = await this.authService.register(
-      request.username,
-      request.email,
-      request.emailVerificationCode,
-      request.password,
+    const user = await this.authService.registerAsync(
+      body.username,
+      body.email,
+      body.emailVerificationCode,
+      body.password,
     );
 
-    if (error) return { error };
-
     return {
-      token: await this.authSessionService.newSession(user, req.ip, req.headers['user-agent']),
-      userMeta: await this.userService.getUserMeta(user, user),
+      token: await this.authSessionService.newSessionAsync(user, req.ip, req.headers["user-agent"]),
+      userBaseDetail: await this.userService.getUserBaseDetail(user, user),
     };
   }
 
-  @Recaptcha()
-  @Post('sendVerificationCode')
+  @Post("sendRegisterEmailVerificationCode")
   @ApiOperation({
-    summary: 'A request to send email verification code.',
-    description: 'Recaptcha required.',
+    summary: "A HTTP POST request to send an email verification code to register.",
+    description: "Recaptcha required.",
   })
   @ApiBearerAuth()
-  async sendVerificationCode(
-    @Body() request: SendVerificationCodeRequestDto,
+  @Recaptcha()
+  async sendRegisterEmailVerificationCodeAsync(
     @CurrentUser() currentUser: UserEntity,
-  ): Promise<SendVerificationCodeResponseDto> {
+    @Body() body: PostSendEmailVerificationCodeRequestBodyDto,
+  ) {
     if (!this.configService.config.preference.security.requireEmailVerification) {
-      return {
-        error: SendVerificationCodeResponseError.FAILED_TO_SEND,
-        status: 'Email verification code disabled.',
-      };
+      throw new FailedToSendEmailVerificationCodeException("Email verification code disabled.");
     }
-    if (request.type === VerificationCodeType.Register) {
-      if (currentUser) {
-        return { error: SendVerificationCodeResponseError.ALREADY_LOGGED };
-      }
-      if (!(await this.userService.checkEmailAvailability(request.email))) {
-        return { error: SendVerificationCodeResponseError.DUPLICATE_EMAIL };
-      }
-    } else if (request.type === VerificationCodeType.ChangeEmail) {
-      if (!currentUser) {
-        return { error: SendVerificationCodeResponseError.PERMISSION_DENIED };
-      }
-      if (currentUser.isBlocked) {
-        return { error: SendVerificationCodeResponseError.ACCOUNT_BLOCKED };
-      }
-      if (!(await this.userService.checkEmailAvailability(request.email))) {
-        return { error: SendVerificationCodeResponseError.DUPLICATE_EMAIL };
-      }
-    } else if (request.type === VerificationCodeType.ResetPassword) {
-      const user = await this.userService.findUserByEmail(request.email);
-      if (!user) {
-        return { error: SendVerificationCodeResponseError.NO_SUCH_USER };
-      }
-      if (user.isBlocked) {
-        return { error: SendVerificationCodeResponseError.ACCOUNT_BLOCKED };
-      }
+    if (currentUser) throw new AlreadyLoggedInException();
+
+    if (!(await this.userService.checkEmailAvailabilityAsync(body.email))) {
+      throw new DuplicateEmailException();
     }
 
-    const code = await this.authVerificationCodeService.generate(request.type, request.email);
-    if (!code) return { error: SendVerificationCodeResponseError.RATE_LIMITED };
-
-    switch (request.type) {
-      case VerificationCodeType.Register:
-        await this.mailService.sendMail(
-          MailTemplate.RegisterVerificationCode,
-          { code },
-          request.email,
-        );
-        break;
-      case VerificationCodeType.ChangeEmail:
-        await this.mailService.sendMail(
-          MailTemplate.ChangeEmailVerificationCode,
-          { code },
-          request.email,
-        );
-        break;
-      case VerificationCodeType.ResetPassword:
-        await this.mailService.sendMail(
-          MailTemplate.ResetPasswordVerificationCode,
-          { code },
-          request.email,
-        );
-        break;
-    }
-
-    return { status: 'SUCCESS' };
+    const code = await this.authVerificationCodeService.generateAsync(CE_VerificationCodeType.Register, body.email);
+    await this.mailService.sendMailAsync(CE_MailTemplate.RegisterVerificationCode, { code }, body.email);
   }
 
-  @Recaptcha()
-  @Post('resetPassword')
+  @Post("sendChangeEmailVerificationCode")
   @ApiOperation({
-    summary: 'A request to reset password.',
-    description: 'Recaptcha required.',
+    summary: "A HTTP POST request to send an email verification code to change email.",
+    description: "Recaptcha required.",
   })
   @ApiBearerAuth()
-  async resetPassword(
-    @Req() req: RequestWithSession,
+  @Recaptcha()
+  async sendChangeEmailVerificationCodeAsync(
     @CurrentUser() currentUser: UserEntity,
-    @Body() request: ResetPasswordRequestDto,
-  ): Promise<ResetPasswordResponseDto> {
-    if (request.type === ResetPasswordType.Force) {
-      if (!currentUser) return { error: ResetPasswordResponseError.NOT_LOGGED };
-      let user = await this.userService.findUserById(request.userId);
-      if (!user) user = await this.userService.findUserByEmail(request.email);
-      if (!user) return { error: ResetPasswordResponseError.NO_SUCH_USER };
-
-      // Only admin can force reset password, except the account is admin too.
-      if (!currentUser.isAdmin || user.isAdmin) {
-        return { error: ResetPasswordResponseError.PERMISSION_DENIED };
-      }
-
-      // Force resetting password no need email verification
-
-      // Changing password
-      const auth = await this.authService.findAuthByUserId(user.id);
-      await this.authService.changePassword(auth, request.newPassword);
-
-      // Force resetting password must revoke all sessions
-      await this.authSessionService.revokeAllSessionsExcept(user.id, null);
-    } else if (request.type === ResetPasswordType.Forgetting) {
-      if (currentUser) return { error: ResetPasswordResponseError.ALREADY_LOGGED };
-      const user = await this.userService.findUserByEmail(request.email);
-      if (!user) return { error: ResetPasswordResponseError.NO_SUCH_USER };
-      if (user.isBlocked) return { error: ResetPasswordResponseError.ACCOUNT_BLOCKED };
-
-      // Forgetting resetting password must require email verification
-      if (
-        !(await this.authVerificationCodeService.verify(
-          VerificationCodeType.ResetPassword,
-          request.email,
-          request.emailVerificationCode,
-        ))
-      ) {
-        return { error: ResetPasswordResponseError.INVALID_EMAIL_VERIFICATION_CODE };
-      }
-
-      // Changing password
-      const auth = await this.authService.findAuthByUserId(user.id);
-      await this.authService.changePassword(auth, request.newPassword);
-
-      // Forgetting resetting password must revoke all sessions
-      await this.authSessionService.revokeAllSessionsExcept(user.id, null);
-
-      // Revoke the verification code after the password changed successfully
-      await this.authVerificationCodeService.revoke(
-        VerificationCodeType.ResetPassword,
-        request.email,
-        request.emailVerificationCode,
-      );
-    } else if (request.type === ResetPasswordType.Common) {
-      const { requireEmailVerification } =
-        this.configService.preferenceConfigToBeSentToUser.security;
-      if (!currentUser) return { error: ResetPasswordResponseError.NOT_LOGGED };
-      if (currentUser.isBlocked) {
-        return { error: ResetPasswordResponseError.ACCOUNT_BLOCKED };
-      }
-
-      const auth = await this.authService.findAuthByUserId(currentUser.id);
-
-      // Common resetting password need email verification if required
-      // and need old password if not require email verification
-      if (requireEmailVerification) {
-        if (
-          !(await this.authVerificationCodeService.verify(
-            VerificationCodeType.ResetPassword,
-            currentUser.email,
-            request.emailVerificationCode,
-          ))
-        ) {
-          return { error: ResetPasswordResponseError.INVALID_EMAIL_VERIFICATION_CODE };
-        }
-      } else {
-        if (
-          !request.oldPassword ||
-          !(await this.authService.checkPassword(auth, request.oldPassword))
-        ) {
-          return { error: ResetPasswordResponseError.WRONG_PASSWORD };
-        }
-      }
-
-      // Changing password
-      await this.authService.changePassword(auth, request.newPassword);
-
-      // Common resetting password must revoke all sessions except current session
-      await this.authSessionService.revokeAllSessionsExcept(currentUser.id, req.session.sessionId);
-
-      // Revoke the verification code after the password changed successfully
-      if (requireEmailVerification) {
-        await this.authVerificationCodeService.revoke(
-          VerificationCodeType.ResetPassword,
-          currentUser.email,
-          request.emailVerificationCode,
-        );
-      }
+    @Body() body: PostSendEmailVerificationCodeRequestBodyDto,
+  ) {
+    if (!this.configService.config.preference.security.requireEmailVerification) {
+      throw new FailedToSendEmailVerificationCodeException("Email verification code disabled.");
     }
-    return { status: 'SUCCESS' };
+    if (!currentUser) throw new NotLoggedInException();
+    if (!this.authService.checkIsAllowedLogin(currentUser)) throw new PermissionDeniedException();
+
+    const auth = await this.authService.findAuthByUserIdAsync(currentUser.id);
+    if (!(await this.authService.checkPasswordAsync(auth, body.password ?? ""))) throw new WrongPasswordException();
+    if (!(await this.userService.checkEmailAvailabilityAsync(body.email))) throw new DuplicateEmailException();
+
+    const code = await this.authVerificationCodeService.generateAsync(CE_VerificationCodeType.ChangeEmail, body.email);
+    await this.mailService.sendMailAsync(CE_MailTemplate.ChangeEmailVerificationCode, { code }, body.email);
+  }
+
+  @Post("sendResetPasswordEmailVerificationCode")
+  @ApiOperation({
+    summary: "A HTTP POST request to send an email verification code to reset password.",
+    description: "Recaptcha required.",
+  })
+  @ApiBearerAuth()
+  @Recaptcha()
+  async sendResetPasswordEmailVerificationCodeAsync(
+    @CurrentUser() currentUser: UserEntity,
+    @Body() body: PostSendEmailVerificationCodeRequestBodyDto,
+  ) {
+    if (!this.configService.config.preference.security.requireEmailVerification) {
+      throw new FailedToSendEmailVerificationCodeException("Email verification code disabled.");
+    }
+
+    const user = currentUser || (await this.userService.findUserByEmailAsync(body.email));
+    if (!user) throw new NoSuchUserException();
+    if (!this.authService.checkIsAllowedLogin(currentUser)) throw new PermissionDeniedException();
+
+    const code = await this.authVerificationCodeService.generateAsync(
+      CE_VerificationCodeType.ResetPassword,
+      body.email,
+    );
+    await this.mailService.sendMailAsync(CE_MailTemplate.ResetPasswordVerificationCode, { code }, body.email);
+  }
+
+  @Post("resetForgotPassword")
+  @ApiOperation({
+    summary: "A HTTP POST request to reset a forgot password.",
+    description: "Recaptcha required.",
+  })
+  @Recaptcha()
+  async resetForgotPasswordAsync(@Body() body: PostResetForgotPasswordBodyDto) {
+    const user = await this.userService.findUserByEmailAsync(body.email);
+    if (!user) throw new NoSuchUserException();
+    if (!this.authService.checkIsAllowedLogin(user)) throw new PermissionDeniedException();
+    if (
+      !(await this.authVerificationCodeService.verifyAsync(
+        CE_VerificationCodeType.ResetPassword,
+        body.email,
+        body.emailVerificationCode,
+      ))
+    ) {
+      throw new InvalidEmailVerificationCodeException();
+    }
+
+    const auth = await user.authPromise;
+    await this.authService.changePasswordAsync(auth, body.newPassword);
+    await this.authSessionService.revokeAllSessionsExceptAsync(user.id, null);
+  }
+
+  @Post("resetPassword")
+  @ApiOperation({
+    summary: "A HTTP POST request to reset the password.",
+    description: "Recaptcha required.",
+  })
+  @ApiBearerAuth()
+  @Recaptcha()
+  async resetPasswordAsync(
+    @Req() req: IRequestWithSession,
+    @CurrentUser() currentUser: UserEntity,
+    @Body() body: PostResetPasswordBodyDto,
+  ) {
+    if (!currentUser) throw new NotLoggedInException();
+    const user = (body.userId && (await this.userService.findUserByIdAsync(body.userId))) || currentUser;
+    if (!user) throw new NoSuchUserException();
+    const auth = await user.authPromise;
+
+    if (user.id === currentUser.id) {
+      if (!this.authService.checkIsAllowedLogin(currentUser)) throw new PermissionDeniedException();
+      if (!(await this.authService.checkPasswordAsync(auth, body.oldPassword))) throw new WrongPasswordException();
+      await this.authSessionService.revokeAllSessionsExceptAsync(user.id, req.session.sessionId);
+    } else {
+      if (!this.userService.checkIsAllowedManage(user, currentUser)) throw new PermissionDeniedException();
+      await this.authSessionService.revokeAllSessionsExceptAsync(user.id, null);
+    }
+    await this.authService.changePasswordAsync(auth, body.newPassword);
   }
 }

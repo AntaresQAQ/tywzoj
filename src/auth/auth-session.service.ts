@@ -1,107 +1,96 @@
-import { Injectable } from '@nestjs/common';
-import fs from 'fs-extra';
-import { Redis, ValueType } from 'ioredis';
-import * as jwt from 'jsonwebtoken';
-import { join } from 'path';
+import { Injectable } from "@nestjs/common";
+import fs from "fs-extra";
+import { Redis, ValueType } from "ioredis";
+import jwt from "jsonwebtoken";
+import { join } from "path";
 
-import { ConfigService } from '@/config/config.service';
-import { RedisService } from '@/redis/redis.service';
-import { UserEntity } from '@/user/user.entity';
-import { UserService } from '@/user/user.service';
+import { ConfigService } from "@/config/config.service";
+import { RedisService } from "@/redis/redis.service";
+import { UserEntity } from "@/user/user.entity";
+import { UserService } from "@/user/user.service";
 
 // Refer to scripts/session-manager.lua for session management details
-interface RedisWithSessionManager extends Redis {
+interface IRedisWithSessionManager extends Redis {
   callSessionManager(...args: ValueType[]): Promise<never>;
 }
 
-interface SessionInfoInternal {
+interface ISessionInfoInternal {
   loginIp: string;
   userAgent: string;
   loginTime: number;
 }
 
-export interface SessionInfo extends SessionInfoInternal {
+export interface ISessionInfo extends ISessionInfoInternal {
   sessionId: number;
   lastAccessTime: number;
 }
 
 @Injectable()
 export class AuthSessionService {
-  private redis: RedisWithSessionManager;
+  private redis: IRedisWithSessionManager;
 
   constructor(
     private readonly configService: ConfigService,
     private readonly userService: UserService,
     private readonly redisService: RedisService,
   ) {
-    this.redis = this.redisService.getClient() as RedisWithSessionManager;
-    this.redis.defineCommand('callSessionManager', {
+    this.redis = this.redisService.getClient() as IRedisWithSessionManager;
+    this.redis.defineCommand("callSessionManager", {
       numberOfKeys: 0,
-      lua: fs.readFileSync(join(__dirname, 'scripts', 'session-manager.lua')).toString('utf-8'),
+      lua: fs.readFileSync(join(__dirname, "scripts", "session-manager.lua")).toString("utf-8"),
     });
   }
 
-  async newSession(user: UserEntity, loginIp: string, userAgent: string): Promise<string> {
+  private decodeSessionKey(sessionKey: string): [number, number] {
+    const jwtString = jwt.verify(sessionKey, this.configService.config.security.sessionSecret) as string;
+    return jwtString.split(" ").map(s => parseInt(s)) as [number, number];
+  }
+
+  private async revokeSessionAsync(userId: number, sessionId: number): Promise<void> {
+    await this.redis.callSessionManager("revoke", userId, sessionId);
+  }
+
+  async newSessionAsync(user: UserEntity, loginIp: string, userAgent: string): Promise<string> {
     const timeStamp = +new Date();
-    const sessionInfo: SessionInfoInternal = {
+    const sessionInfo: ISessionInfoInternal = {
       loginIp: loginIp,
       userAgent: userAgent,
       loginTime: timeStamp,
     };
 
-    const sessionId = await this.redis.callSessionManager(
-      'new',
-      timeStamp,
-      user.id,
-      JSON.stringify(sessionInfo),
-    );
+    const sessionId = await this.redis.callSessionManager("new", timeStamp, user.id, JSON.stringify(sessionInfo));
 
-    return jwt.sign(
-      user.id.toString() + ' ' + sessionId,
-      this.configService.config.security.sessionSecret,
-    );
+    return jwt.sign(user.id.toString() + " " + sessionId, this.configService.config.security.sessionSecret);
   }
 
-  private decodeSessionKey(sessionKey: string): [number, number] {
-    const jwtString = jwt.verify(
-      sessionKey,
-      this.configService.config.security.sessionSecret,
-    ) as string;
-    return jwtString.split(' ').map(s => parseInt(s)) as [number, number];
+  async revokeAllSessionsExceptAsync(userId: number, sessionId: number): Promise<void> {
+    await this.redis.callSessionManager("revoke_all_except", userId, sessionId);
   }
 
-  async revokeSession(userId: number, sessionId: number): Promise<void> {
-    await this.redis.callSessionManager('revoke', userId, sessionId);
-  }
-
-  async revokeAllSessionsExcept(userId: number, sessionId: number): Promise<void> {
-    await this.redis.callSessionManager('revoke_all_except', userId, sessionId);
-  }
-
-  async endSession(sessionKey: string): Promise<void> {
+  async endSessionAsync(sessionKey: string): Promise<void> {
     try {
       const [userId, sessionId] = this.decodeSessionKey(sessionKey);
-      await this.revokeSession(userId, sessionId);
+      await this.revokeSessionAsync(userId, sessionId);
     } catch (e) {}
   }
 
-  async accessSession(sessionKey: string): Promise<[number, UserEntity]> {
+  async accessSessionAsync(sessionKey: string): Promise<[number, UserEntity?]> {
     try {
       const [userId, sessionId] = this.decodeSessionKey(sessionKey);
 
-      const success = await this.redis.callSessionManager('access', +new Date(), userId, sessionId);
-      if (!success) return [null, null];
+      const success = await this.redis.callSessionManager("access", Date.now(), userId, sessionId);
+      if (!success) return [null];
 
-      return [sessionId, await this.userService.findUserById(userId)];
+      return [sessionId, await this.userService.findUserByIdAsync(userId)];
     } catch (e) {
-      return [null, null];
+      return [null];
     }
   }
 
-  async listUserSessions(userId: number): Promise<SessionInfo[]> {
-    const result: [string, string, string][] = await this.redis.callSessionManager('list', userId);
+  async listUserSessionsAsync(userId: number): Promise<ISessionInfo[]> {
+    const result: [string, string, string][] = await this.redis.callSessionManager("list", userId);
     return result.map(
-      ([sessionId, lastAccessTime, sessionInfo]): SessionInfo => ({
+      ([sessionId, lastAccessTime, sessionInfo]): ISessionInfo => ({
         sessionId: parseInt(sessionId),
         lastAccessTime: parseInt(lastAccessTime),
         ...JSON.parse(sessionInfo),

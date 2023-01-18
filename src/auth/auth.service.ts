@@ -1,24 +1,26 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { InjectConnection, InjectRepository } from '@nestjs/typeorm';
-import bcrypt from 'bcrypt';
-import { Connection, Repository } from 'typeorm';
+import { forwardRef, Inject, Injectable } from "@nestjs/common";
+import { InjectDataSource, InjectRepository } from "@nestjs/typeorm";
+import bcrypt from "bcrypt";
+import { DataSource, Repository } from "typeorm";
 
-import { ConfigService } from '@/config/config.service';
-import { UserEntity } from '@/user/user.entity';
-import { UserService } from '@/user/user.service';
+import { CE_Permissions, checkIsAllowed } from "@/common/user-level";
+import { ConfigService } from "@/config/config.service";
+import { UserEntity } from "@/user/user.entity";
+import { UserService } from "@/user/user.service";
 
-import { AuthEntity } from './auth.entity';
+import { AuthEntity } from "./auth.entity";
 import {
-  AuthVerificationCodeService,
-  VerificationCodeType,
-} from './auth-verification-code.service';
-import { RegisterResponseError } from './dto';
+  DuplicateEmailException,
+  DuplicateUsernameException,
+  InvalidEmailVerificationCodeException,
+} from "./auth.exception";
+import { AuthVerificationCodeService, CE_VerificationCodeType } from "./auth-verification-code.service";
 
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectConnection()
-    private readonly connection: Connection,
+    @InjectDataSource()
+    private readonly dataSource: DataSource,
     @InjectRepository(AuthEntity)
     private readonly authRepository: Repository<AuthEntity>,
     @Inject(forwardRef(() => AuthVerificationCodeService))
@@ -29,43 +31,35 @@ export class AuthService {
     private readonly configService: ConfigService,
   ) {}
 
-  private static async hashPassword(password: string): Promise<string> {
+  private static async hashPasswordAsync(password: string): Promise<string> {
     return await bcrypt.hash(password, 10);
   }
 
-  async findAuthByUserId(userId: number): Promise<AuthEntity> {
-    return await this.authRepository.findOne({ userId });
+  async findAuthByUserIdAsync(userId: number): Promise<AuthEntity> {
+    return await this.authRepository.findOne({ where: { userId } });
   }
 
-  async checkPassword(auth: AuthEntity, password: string): Promise<boolean> {
-    return await bcrypt.compare(password, auth.password);
-  }
-
-  async changePassword(auth: AuthEntity, password: string): Promise<void> {
-    auth.password = await AuthService.hashPassword(password);
+  async changePasswordAsync(auth: AuthEntity, password: string): Promise<void> {
+    auth.password = await AuthService.hashPasswordAsync(password);
     await this.authRepository.save(auth);
   }
 
-  async register(
+  async registerAsync(
     username: string,
     email: string,
     verificationCode: string,
     password: string,
-  ): Promise<[error: RegisterResponseError, user: UserEntity]> {
+  ): Promise<UserEntity> {
     if (this.configService.config.preference.security.requireEmailVerification) {
       if (
-        !(await this.authVerificationCodeService.verify(
-          VerificationCodeType.Register,
-          email,
-          verificationCode,
-        ))
+        !(await this.authVerificationCodeService.verifyAsync(CE_VerificationCodeType.Register, email, verificationCode))
       ) {
-        return [RegisterResponseError.INVALID_EMAIL_VERIFICATION_CODE, null];
+        throw new InvalidEmailVerificationCodeException();
       }
     }
     try {
       let user: UserEntity;
-      await this.connection.transaction('READ COMMITTED', async entityManager => {
+      await this.dataSource.transaction("READ COMMITTED", async entityManager => {
         user = new UserEntity();
         user.username = username;
         user.email = email;
@@ -74,27 +68,31 @@ export class AuthService {
 
         const auth = new AuthEntity();
         auth.userId = user.id;
-        auth.password = await AuthService.hashPassword(password);
+        auth.password = await AuthService.hashPasswordAsync(password);
         await entityManager.save(auth);
       });
 
       if (this.configService.config.preference.security.requireEmailVerification) {
-        await this.authVerificationCodeService.revoke(
-          VerificationCodeType.Register,
-          email,
-          verificationCode,
-        );
+        await this.authVerificationCodeService.revokeAsync(CE_VerificationCodeType.Register, email, verificationCode);
       }
 
-      return [null, user];
+      return user;
     } catch (e) {
-      if (!(await this.userService.checkUsernameAvailability(username))) {
-        return [RegisterResponseError.DUPLICATE_USERNAME, null];
-      }
-      if (!(await this.userService.checkEmailAvailability(email))) {
-        return [RegisterResponseError.DUPLICATE_EMAIL, null];
-      }
+      if (!(await this.userService.checkUsernameAvailabilityAsync(username))) throw new DuplicateUsernameException();
+      if (!(await this.userService.checkEmailAvailabilityAsync(email))) throw new DuplicateEmailException();
       throw e;
     }
+  }
+
+  async checkPasswordAsync(auth: AuthEntity, password: string): Promise<boolean> {
+    return await bcrypt.compare(password, auth.password);
+  }
+
+  checkIsAllowedLogin(currentUser: UserEntity) {
+    return checkIsAllowed(currentUser.level, CE_Permissions.AccessSite);
+  }
+
+  checkIsAllowedRegister() {
+    // TODO: add a setting in config schema
   }
 }

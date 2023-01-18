@@ -1,16 +1,16 @@
-import { forwardRef, MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { forwardRef, MiddlewareConsumer, Module, NestModule, RequestMethod } from "@nestjs/common";
+import { TypeOrmModule } from "@nestjs/typeorm";
 
-import { AuthVerificationCodeService } from '@/auth/auth-verification-code.service';
-import { MailModule } from '@/mail/mail.module';
-import { RedisModule } from '@/redis/redis.module';
-import { UserModule } from '@/user/user.module';
+import { AuthVerificationCodeService } from "@/auth/auth-verification-code.service";
+import { MailModule } from "@/mail/mail.module";
+import { RedisModule } from "@/redis/redis.module";
+import { UserModule } from "@/user/user.module";
 
-import { AuthController } from './auth.controller';
-import { AuthEntity } from './auth.entity';
-import { AuthMiddleware } from './auth.middleware';
-import { AuthService } from './auth.service';
-import { AuthSessionService } from './auth-session.service';
+import { AuthController } from "./auth.controller";
+import { AuthEntity } from "./auth.entity";
+import { AuthMiddleware } from "./auth.middleware";
+import { AuthService } from "./auth.service";
+import { AuthSessionService } from "./auth-session.service";
 
 @Module({
   imports: [
@@ -26,7 +26,7 @@ import { AuthSessionService } from './auth-session.service';
 export class AuthModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
     consumer.apply(AuthMiddleware).forRoutes({
-      path: '*',
+      path: "*",
       method: RequestMethod.ALL,
     });
   }
