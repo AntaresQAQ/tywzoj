@@ -1,127 +1,57 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { InjectConnection, InjectRepository } from '@nestjs/typeorm';
-import { Connection, Repository } from 'typeorm';
+import { forwardRef, Inject, Injectable } from "@nestjs/common";
+import { InjectDataSource, InjectRepository } from "@nestjs/typeorm";
+import { DataSource, In, Repository } from "typeorm";
 
-import { escapeLike } from '@/database/database.utils';
-import { ProblemContentDto, ProblemMetaDto, ProblemTagMetaDto } from '@/problem/dto';
-import { ProblemTagEntity, ProblemTagType } from '@/problem/problem-tag.entity';
-import { ProblemTagMapEntity } from '@/problem/problem-tag-map.entity';
-import { UserEntity, UserType } from '@/user/user.entity';
-import { UserService } from '@/user/user.service';
+import { CE_Permissions, checkIsAllowed } from "@/common/user-level";
+import { escapeLike } from "@/database/database.utils";
+import { ProblemSampleEntity } from "@/problem/problem-sample.entity";
+import { IProblemSampleEntity } from "@/problem/problem-sample.types";
+import { IProblemTagEntity, IProblemTagTypeEntity } from "@/problem/problem-tag.types";
+import { UserEntity } from "@/user/user.entity";
+import { UserService } from "@/user/user.service";
 
-import { ProblemEntity, ProblemPermission } from './problem.entity';
+import { ProblemEntity } from "./problem.entity";
+import { E_ProblemScope, IProblemBaseEntityWithExtra, IProblemEntityWithExtra } from "./problem.types";
+import { ProblemTagEntity } from "./problem-tag.entity";
+import { ProblemTagMapEntity } from "./problem-tag-map.entity";
+import { ProblemTagTypeEntity } from "./problem-tag-type.entity";
 
 @Injectable()
 export class ProblemService {
   constructor(
-    @InjectConnection()
-    private readonly connection: Connection,
+    @InjectDataSource()
+    private readonly dataSource: DataSource,
     @InjectRepository(ProblemEntity)
     private readonly problemRepository: Repository<ProblemEntity>,
     @InjectRepository(ProblemTagEntity)
     private readonly problemTagRepository: Repository<ProblemTagEntity>,
     @InjectRepository(ProblemTagMapEntity)
     private readonly problemTagMapRepository: Repository<ProblemTagMapEntity>,
+    @InjectRepository(ProblemTagTypeEntity)
+    private readonly problemTagTypeRepository: Repository<ProblemTagTypeEntity>,
     @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
   ) {}
 
-  public problemIsAllowedView(problem: ProblemEntity, user: UserEntity): boolean {
-    if (!user || user.isBlocked) return false;
-    if (user.isManager) return true;
-    if (!problem.isPublic) return false;
-    if (problem.permission === ProblemPermission.ALL) return true;
-    if (problem.permission === ProblemPermission.PAYING) {
-      return user.type !== UserType.GENERAL;
-    } else if (problem.permission === ProblemPermission.SCHOOL) {
-      return user.type === UserType.SCHOOL;
-    }
-    return false;
+  public async findProblemByIdAsync(id: number): Promise<ProblemEntity> {
+    return await this.problemRepository.findOne({ where: { id } });
   }
 
-  public userCanViewProblemPermissions(user: UserEntity): ProblemPermission[] {
-    if (!user || user.isBlocked) return [];
-    if (user.isManager || user.type === UserType.SCHOOL) {
-      return [ProblemPermission.ALL, ProblemPermission.PAYING, ProblemPermission.SCHOOL];
-    }
-    if (user.type === UserType.PAYING) {
-      return [ProblemPermission.ALL, ProblemPermission.PAYING];
-    }
-    return [ProblemPermission.ALL];
+  public async findProblemByDisplayIdAsync(displayId: number): Promise<ProblemEntity> {
+    return await this.problemRepository.findOne({ where: { displayId } });
   }
 
-  public async findProblemById(id: number): Promise<ProblemEntity> {
-    return await this.problemRepository.findOne(id);
-  }
-
-  public async findProblemByDisplayId(displayId: number): Promise<ProblemEntity> {
-    return await this.problemRepository.findOne({ displayId });
-  }
-
-  public async getProblemMeta(
-    problem: ProblemEntity,
-    queryTags: boolean,
-    queryJudgeState: boolean,
-    currentUser: UserEntity,
-  ): Promise<ProblemMetaDto> {
-    // TODO: query judge state
-
-    const meta: ProblemMetaDto = {
-      id: problem.displayId,
-      title: problem.title,
-      isPublic: problem.isPublic,
-      submissionCount: problem.submissionCount,
-      acceptedSubmissionCount: problem.acceptedSubmissionCount,
-    };
-
-    if (queryTags) {
-      const queryBuilder = await this.problemTagRepository.createQueryBuilder('tag');
-      const tagIdsQuery = queryBuilder
-        .subQuery()
-        .select('map.problemTagId')
-        .from(ProblemTagMapEntity, 'map')
-        .where('map.problemId = :problemId ', { problemId: problem.id })
-        .getQuery();
-      queryBuilder
-        .where(`id IN ${tagIdsQuery}`)
-        .orderBy('type', 'ASC')
-        .addOrderBy('`order`', 'ASC');
-      meta.tags = (await queryBuilder.getMany()).map(tag => this.getProblemTagMeta(tag));
-    }
-
-    return meta;
-  }
-
-  async getProblemContent(
-    problem: ProblemEntity,
-    currentUser: UserEntity,
-  ): Promise<ProblemContentDto> {
-    return {
-      description: problem.description,
-      inputFormat: problem.inputFormat,
-      outputFormat: problem.outputFormat,
-      limitAndHint: problem.limitAndHint,
-      type: problem.type,
-      owner: await this.userService.getUserMeta(await problem.owner, currentUser),
-      samples: (await problem.samples).map(sample => ({
-        input: sample.input,
-        output: sample.output,
-        explanation: sample.explanation,
-      })),
-    };
-  }
-
-  async findProblemsByExistingIds(problemIds: number[]): Promise<ProblemEntity[]> {
+  public async findProblemsByExistingIdsAsync(problemIds: number[]): Promise<ProblemEntity[]> {
     if (problemIds.length === 0) return [];
     const uniqueIds = Array.from(new Set(problemIds));
-    const records = await this.problemRepository.findByIds(uniqueIds);
+    const records = await this.problemRepository.findBy({ id: In(uniqueIds) });
     const map = Object.fromEntries(records.map(record => [record.id, record]));
     return problemIds.map(problemId => map[problemId]);
   }
 
-  public async getProblemList(
-    sortBy: 'id' | 'title' | 'submissionCount' | 'acceptedSubmissionCount',
-    order: 'ASC' | 'DESC',
+  public async findProblemListAsync(
+    sortBy: "id" | "title" | "submissionCount" | "acceptedSubmissionCount",
+    order: "ASC" | "DESC",
     skipCount: number,
     takeCount: number,
     keyword: string,
@@ -129,64 +59,154 @@ export class ProblemService {
     currentUser: UserEntity,
   ): Promise<[problems: ProblemEntity[], count: number]> {
     const queryBuilder = this.problemRepository
-      .createQueryBuilder('problem')
-      .select('problem.id', 'id')
-      .where('permission IN (:permissions)', {
-        permissions: this.userCanViewProblemPermissions(currentUser),
-      });
+      .createQueryBuilder("problem")
+      .select("problem.id", "id")
+      .where("level <= :level", { level: currentUser.level })
+      .andWhere("scope = :scope", { scope: E_ProblemScope.Global });
 
-    if (!currentUser.isManager) {
-      queryBuilder.andWhere('isPublic = 1');
+    if (!checkIsAllowed(currentUser.level, CE_Permissions.ManageProblem)) {
+      queryBuilder.andWhere(qb => {
+        qb.where("isPublic = 1").orWhere("ownerId = :ownerId", { ownerId: currentUser.id });
+      });
     }
 
     if (tagIds && tagIds.length > 0) {
       queryBuilder
-        .innerJoin(ProblemTagMapEntity, 'map', 'problem.id = map.problemId')
-        .andWhere('map.problemTagId IN (:...tagIds)', { tagIds })
-        .groupBy('problem.id');
-      if (tagIds.length > 1)
-        queryBuilder.having('COUNT(DISTINCT map.problemTagId) = :count', { count: tagIds.length });
+        .innerJoin(ProblemTagMapEntity, "map", "problem.id = map.problemId")
+        .andWhere("map.problemTagId IN (:...tagIds)", { tagIds })
+        .groupBy("problem.id");
+      if (tagIds.length > 1) queryBuilder.having("COUNT(DISTINCT map.problemTagId) = :count", { count: tagIds.length });
     }
 
     if (keyword) {
-      queryBuilder.andWhere('problem.title LIKE :like', { like: `%${escapeLike(keyword)}%` });
+      queryBuilder.andWhere("problem.title LIKE :like", { like: `%${escapeLike(keyword)}%` });
     }
 
     // QueryBuilder.getManyAndCount() has a bug with GROUP BY
     const count = Number(
       (
-        await this.connection
+        await this.dataSource
           .createQueryBuilder()
-          .select('COUNT(*)', 'count')
-          .from(`(${queryBuilder.getQuery()})`, 'temp')
+          .select("COUNT(*)", "count")
+          .from(`(${queryBuilder.getQuery()})`, "temp")
           .setParameters(queryBuilder.expressionMap.parameters)
           .getRawOne()
       ).count,
     );
 
-    queryBuilder.orderBy(sortBy === 'id' ? 'problem.displayId' : `problem.${sortBy}`, order);
+    queryBuilder.orderBy(sortBy === "id" ? "problem.displayId" : `problem.${sortBy}`, order);
     const result = await queryBuilder
       .limit(takeCount)
       .offset(skipCount * takeCount)
       .getRawMany();
-    return [await this.findProblemsByExistingIds(result.map(row => row.id)), count];
+    return [await this.findProblemsByExistingIdsAsync(result.map(row => row.id)), count];
   }
 
-  public getProblemTagMeta(tag: ProblemTagEntity): ProblemTagMetaDto {
+  public async findProblemTagsByProblemIdAsync(problemId: number): Promise<ProblemTagEntity[]> {
+    const queryBuilder = this.problemTagRepository.createQueryBuilder("tag");
+    const tagIdsQuery = queryBuilder
+      .subQuery()
+      .select("tagMap.problemTagId")
+      .from(ProblemTagMapEntity, "tagMap")
+      .where("tagMap.problemId = :problemId ", { problemId })
+      .getQuery();
+    queryBuilder.where(`id IN ${tagIdsQuery}`).orderBy("`order`", "ASC");
+    return await queryBuilder.getMany();
+  }
+
+  public async getProblemBaseDetailAsync(
+    problem: ProblemEntity,
+    queryTags: boolean,
+  ): Promise<IProblemBaseEntityWithExtra> {
+    const baseDetail: IProblemBaseEntityWithExtra = {
+      id: problem.id,
+      displayId: problem.displayId,
+      title: problem.title,
+      subtitle: problem.subtitle,
+      isPublic: problem.isPublic,
+      scope: problem.scope,
+      submissionCount: problem.submissionCount,
+      acceptedSubmissionCount: problem.acceptedSubmissionCount,
+    };
+
+    if (queryTags) {
+      const tags = await this.findProblemTagsByProblemIdAsync(problem.id);
+      baseDetail.tags = tags.map(tag => this.getProblemTagDetail(tag));
+    }
+
+    return baseDetail;
+  }
+
+  public async getProblemDetailAsync(
+    problem: ProblemEntity,
+    queryTags: boolean,
+    currentUser: UserEntity,
+  ): Promise<IProblemEntityWithExtra> {
+    return {
+      ...(await this.getProblemBaseDetailAsync(problem, queryTags)),
+      description: problem.description,
+      inputFormat: problem.inputFormat,
+      outputFormat: problem.outputFormat,
+      limitAndHint: problem.limitAndHint,
+      type: problem.type,
+      level: problem.level,
+      owner: await this.userService.getUserBaseDetail(await problem.owner, currentUser),
+      samples: (await problem.samples).map(sample => this.getProblemSampleDetail(sample)),
+    };
+  }
+
+  public getProblemSampleDetail(problemSample: ProblemSampleEntity): IProblemSampleEntity {
+    return {
+      id: problemSample.id,
+      input: problemSample.input,
+      output: problemSample.output,
+      explanation: problemSample.explanation,
+    };
+  }
+
+  public getProblemTagDetail(tag: ProblemTagEntity): IProblemTagEntity {
     return {
       id: tag.id,
       name: tag.name,
-      type: tag.type,
+      typeId: tag.typeId,
       order: tag.order,
     };
   }
 
-  public async getProblemTagList(type?: ProblemTagType): Promise<ProblemTagEntity[]> {
-    const queryBuilder = this.problemTagRepository
-      .createQueryBuilder()
-      .orderBy('`order`', 'ASC')
-      .addOrderBy('name', 'ASC');
-    if (type) queryBuilder.where('type = :type', { type });
-    return await queryBuilder.getMany();
+  public getProblemTagTypeDetail(tagType: ProblemTagTypeEntity): IProblemTagTypeEntity {
+    return {
+      id: tagType.id,
+      name: tagType.name,
+      color: tagType.color,
+      order: tagType.order,
+    };
+  }
+
+  public checkIsAllowedView(problem: ProblemEntity, currentUser: UserEntity): boolean {
+    if (this.checkIsAllowedManage(problem, currentUser)) return true;
+
+    if (problem.scope === E_ProblemScope.Global) {
+      return currentUser.level >= problem.level || currentUser.id === problem.ownerId;
+    } else if (problem.scope === E_ProblemScope.Group) {
+      // TODO: check current user is in group or problem owner
+      return currentUser.id === problem.ownerId;
+    } else if (problem.scope === E_ProblemScope.Personal) {
+      return currentUser.id === problem.ownerId;
+    } else {
+      return false;
+    }
+  }
+
+  public checkIsAllowedManage(problem: ProblemEntity, currentUser: UserEntity): boolean {
+    if (checkIsAllowed(currentUser.level, CE_Permissions.ManageProblem)) return true;
+
+    if (problem.scope === E_ProblemScope.Group) {
+      // TODO: check current user is group manager or problem owner
+      return problem.ownerId === currentUser.id;
+    } else if (problem.scope === E_ProblemScope.Personal) {
+      return problem.ownerId === currentUser.id;
+    } else {
+      return false;
+    }
   }
 }

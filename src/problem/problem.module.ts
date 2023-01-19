@@ -1,16 +1,16 @@
-import { forwardRef, Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { forwardRef, Module } from "@nestjs/common";
+import { TypeOrmModule } from "@nestjs/typeorm";
 
-import { UserModule } from '@/user/user.module';
+import { UserModule } from "@/user/user.module";
 
-import { ProblemController } from './problem.controller';
-import { ProblemEntity } from './problem.entity';
-import { ProblemService } from './problem.service';
-import { ProblemSampleEntity } from './problem-sample.entity';
-import { ProblemSetEntity } from './problem-set.entity';
-import { ProblemSetMapEntity } from './problem-set-map.entity';
-import { ProblemTagEntity } from './problem-tag.entity';
-import { ProblemTagMapEntity } from './problem-tag-map.entity';
+import { ProblemController } from "./problem.controller";
+import { ProblemEntity } from "./problem.entity";
+import { ProblemService } from "./problem.service";
+import { ProblemSampleEntity } from "./problem-sample.entity";
+import { ProblemSetEntity } from "./problem-set.entity";
+import { ProblemSetMapEntity } from "./problem-set-map.entity";
+import { ProblemTagEntity } from "./problem-tag.entity";
+import { ProblemTagMapEntity } from "./problem-tag-map.entity";
 
 @Module({
   imports: [

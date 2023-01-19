@@ -1,19 +1,19 @@
-import { Column, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
-import { ProblemEntity } from './problem.entity';
-import { ProblemSetEntity } from './problem-set.entity';
+import { ProblemEntity } from "./problem.entity";
+import { ProblemSetEntity } from "./problem-set.entity";
 
-@Entity('problem_set_map')
-@Index(['problemSetId', 'problemId'], { unique: true })
+@Entity("problem_set_map")
+@Index(["problemSetId", "problemId"], { unique: true })
 export class ProblemSetMapEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'integer', default: 100 })
+  @Column({ type: "integer", default: 100 })
   sortIndex: number;
 
   @ManyToOne(() => ProblemSetEntity, {
-    onDelete: 'CASCADE',
+    onDelete: "CASCADE",
   })
   @JoinColumn()
   problemSet: Promise<ProblemSetEntity>;
@@ -23,7 +23,7 @@ export class ProblemSetMapEntity {
   problemSetId: number;
 
   @ManyToOne(() => ProblemEntity, {
-    onDelete: 'CASCADE',
+    onDelete: "CASCADE",
   })
   @JoinColumn()
   problem: Promise<ProblemEntity>;

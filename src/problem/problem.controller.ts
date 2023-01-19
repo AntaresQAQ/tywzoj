@@ -1,113 +1,66 @@
-import { Body, Controller, Post } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Controller, Get, Query } from "@nestjs/common";
+import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 
-import { CurrentUser } from '@/common/user.decorator';
-import { ConfigService } from '@/config/config.service';
-import { UserEntity } from '@/user/user.entity';
+import { AuthRequiredException, PermissionDeniedException } from "@/common/exception";
+import { CurrentUser } from "@/common/user.decorator";
+import { CE_Permissions, checkIsAllowed } from "@/common/user-level";
+import { ConfigService } from "@/config/config.service";
+import { UserEntity } from "@/user/user.entity";
 
-import {
-  GetProblemDetailRequestDto,
-  GetProblemDetailResponseDto,
-  GetProblemDetailResponseError,
-  GetProblemListRequestDto,
-  GetProblemListResponseDto,
-  GetProblemListResponseError,
-  GetProblemTagListError,
-  GetProblemTagListResponseDto,
-} from './dto';
-import { ProblemService } from './problem.service';
-import { ProblemTagType } from './problem-tag.entity';
+import { GetProblemListRequestQueryDto, GetProblemListResponseDto } from "./dto/problem-list.dto";
+import { TakeTooManyException } from "./problem.exception";
+import { ProblemService } from "./problem.service";
 
-@ApiTags('Problem')
-@Controller('problem')
+@ApiTags("Problem")
+@Controller("problem")
 export class ProblemController {
-  constructor(
-    private readonly configService: ConfigService,
-    private readonly problemService: ProblemService,
-  ) {}
+  constructor(private readonly configService: ConfigService, private readonly problemService: ProblemService) {}
 
+  @Get("list")
   @ApiOperation({
-    summary: 'A request to get list of problem which can be saw by current user',
+    summary: "A HTTP GET request to get list of problem which can be saw by current user",
   })
-  @Post('getProblemList')
-  async getProblemList(
+  @ApiBearerAuth()
+  async getProblemListAsync(
     @CurrentUser() currentUser: UserEntity,
-    @Body() request: GetProblemListRequestDto,
+    @Query() query: GetProblemListRequestQueryDto,
   ): Promise<GetProblemListResponseDto> {
-    if (!currentUser) return { error: GetProblemListResponseError.NOT_LOGGED };
-    if (currentUser.isBlocked) return { error: GetProblemListResponseError.PERMISSION_DENIED };
-    if (request.takeCount > this.configService.config.queryLimit.problem)
-      return { error: GetProblemListResponseError.TAKE_TOO_MANY };
+    if (!currentUser) throw new AuthRequiredException();
+    if (!checkIsAllowed(currentUser.level, CE_Permissions.AccessSite)) throw new PermissionDeniedException();
+    if (query.takeCount > this.configService.config.queryLimit.problem) throw new TakeTooManyException();
 
-    const [problems, count] = await this.problemService.getProblemList(
-      request.sortBy,
-      request.order,
-      request.skipCount,
-      request.takeCount,
-      request.keyword,
-      request.tagIds,
+    const tagIds =
+      query.tagIds &&
+      query.tagIds
+        .trim()
+        .split(",")
+        .map(x => Number(x.trim()))
+        .filter(x => Number.isSafeInteger(x));
+
+    const [problems, count] = await this.problemService.findProblemListAsync(
+      query.sortBy,
+      query.order,
+      query.skipCount,
+      query.takeCount,
+      query.keyword,
+      tagIds,
       currentUser,
     );
 
-    if (request.keyword && request.keywordMatchesId) {
-      const matchDisplayId = Number.isSafeInteger(Number(request.keyword))
-        ? Number(request.keyword) || 0
-        : 0;
+    if (query.keyword && query.keywordMatchesId) {
+      const matchDisplayId = Number.isSafeInteger(Number(query.keyword)) ? Number(query.keyword) || 0 : 0;
       if (!problems.some(problem => problem.id === matchDisplayId)) {
-        const problem = await this.problemService.findProblemByDisplayId(matchDisplayId);
-        if (problem && this.problemService.problemIsAllowedView(problem, currentUser))
-          problems.unshift(problem);
-        while (problems.length > request.takeCount) problems.pop();
+        const problem = await this.problemService.findProblemByDisplayIdAsync(matchDisplayId);
+        if (problem && this.problemService.checkIsAllowedView(problem, currentUser)) problems.unshift(problem);
+        while (problems.length > query.takeCount) problems.pop();
       }
     }
 
     return {
       count: count,
-      problemMetas: await Promise.all(
-        problems.map(problem =>
-          this.problemService.getProblemMeta(problem, request.showTags, true, currentUser),
-        ),
+      problems: await Promise.all(
+        problems.map(problem => this.problemService.getProblemBaseDetailAsync(problem, query.queryTags)),
       ),
-    };
-  }
-
-  @ApiOperation({
-    summary: 'A request to get problem detail',
-  })
-  @Post('getProblemDetail')
-  async getProblemDetail(
-    @CurrentUser() currentUser: UserEntity,
-    @Body() request: GetProblemDetailRequestDto,
-  ): Promise<GetProblemDetailResponseDto> {
-    if (!currentUser) return { error: GetProblemDetailResponseError.NOT_LOGGED };
-    const problem = await this.problemService.findProblemByDisplayId(request.displayId);
-    if (!problem) return { error: GetProblemDetailResponseError.NO_SUCH_PROBLEM };
-    if (!this.problemService.problemIsAllowedView(problem, currentUser))
-      return { error: GetProblemDetailResponseError.PERMISSION_DENIED };
-    return {
-      problemMeta: await this.problemService.getProblemMeta(problem, true, false, currentUser),
-      problemContent: await this.problemService.getProblemContent(problem, currentUser),
-    };
-  }
-
-  @ApiOperation({
-    summary: 'A request to get all tags',
-  })
-  @Post('getProblemTagList')
-  async getProblemTagList(
-    @CurrentUser() currentUser: UserEntity,
-  ): Promise<GetProblemTagListResponseDto> {
-    if (!currentUser) return { error: GetProblemTagListError.NOT_LOGGED };
-    if (currentUser.isBlocked) return { error: GetProblemTagListError.PERMISSION_DENIED };
-    const algorithmTags = await this.problemService.getProblemTagList(ProblemTagType.Algorithm);
-    const datetimeTags = await this.problemService.getProblemTagList(ProblemTagType.Datetime);
-    const originTags = await this.problemService.getProblemTagList(ProblemTagType.Origin);
-    const otherTags = await this.problemService.getProblemTagList(ProblemTagType.Other);
-    return {
-      algorithmTagMetas: algorithmTags.map(tag => this.problemService.getProblemTagMeta(tag)),
-      datetimeTagMetas: datetimeTags.map(tag => this.problemService.getProblemTagMeta(tag)),
-      originTagMetas: originTags.map(tag => this.problemService.getProblemTagMeta(tag)),
-      otherTagsMetas: otherTags.map(tag => this.problemService.getProblemTagMeta(tag)),
     };
   }
 }

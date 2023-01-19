@@ -1,62 +1,45 @@
-import {
-  Column,
-  Entity,
-  Index,
-  JoinColumn,
-  ManyToOne,
-  OneToMany,
-  OneToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, Index, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 
-import { ProblemJudgeInfoEntity } from '@/problem/problem-judge-info.entity';
-import { UserEntity } from '@/user/user.entity';
+import { CE_ProblemLevel, E_ProblemScope, E_ProblemType, IProblemEntity } from "@/problem/problem.types";
+import { ProblemJudgeInfoEntity } from "@/problem/problem-judge-info.entity";
+import { UserEntity } from "@/user/user.entity";
 
-import { ProblemSampleEntity } from './problem-sample.entity';
+import { ProblemSampleEntity } from "./problem-sample.entity";
 
-export enum ProblemType {
-  Traditional = 'Traditional',
-  Interaction = 'Interaction',
-  SubmitAnswer = 'SubmitAnswer',
-}
-
-export enum ProblemPermission {
-  ALL = 'ALL',
-  PAYING = 'PAYING',
-  SCHOOL = 'SCHOOL',
-}
-
-@Entity('problem')
-export class ProblemEntity {
+@Entity("problem")
+export class ProblemEntity implements IProblemEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'integer', nullable: false })
+  @Column({ type: "integer", nullable: false })
   @Index({ unique: true })
   displayId: number;
 
-  @Column({ type: 'varchar', length: 80, nullable: false })
+  @Column({ type: "varchar", length: 80, nullable: false })
   title: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
+  subtitle: string;
+
+  @Column({ type: "text", nullable: true })
   description: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   inputFormat: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   outputFormat: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   limitAndHint: string;
 
   @Column({
-    type: 'enum',
-    enum: ProblemType,
-    default: ProblemType.Traditional,
+    type: "enum",
+    enum: E_ProblemType,
+    default: E_ProblemType.Traditional,
     nullable: false,
   })
-  type: ProblemType;
+  type: E_ProblemType;
 
   @OneToMany(() => ProblemSampleEntity, problemSample => problemSample.problem)
   samples: Promise<ProblemSampleEntity[]>;
@@ -68,19 +51,22 @@ export class ProblemEntity {
   @Column()
   ownerId: number;
 
-  @Column({ type: 'boolean' })
+  @Column({ type: "boolean" })
   isPublic: boolean;
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: "enum", enum: E_ProblemScope, default: E_ProblemScope.Personal })
+  scope: E_ProblemScope;
+
+  @Column({ type: "datetime", nullable: true })
   publicTime: Date;
 
-  @Column({ type: 'enum', enum: ProblemPermission, default: ProblemPermission.ALL })
-  permission: ProblemPermission;
+  @Column({ type: "integer", default: CE_ProblemLevel.All })
+  level: CE_ProblemLevel;
 
-  @Column({ type: 'integer', default: 0 })
+  @Column({ type: "integer", default: 0 })
   submissionCount: number;
 
-  @Column({ type: 'integer', default: 0 })
+  @Column({ type: "integer", default: 0 })
   acceptedSubmissionCount: number;
 
   @OneToOne(() => ProblemJudgeInfoEntity, problemJudgeInfo => problemJudgeInfo.problem)

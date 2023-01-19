@@ -1,31 +1,29 @@
-import { Column, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
-export enum ProblemTagType {
-  Algorithm = 'Algorithm',
-  Datetime = 'Datetime',
-  Origin = 'Origin',
-  Other = 'Other',
-}
+import { IProblemTagEntity } from "@/problem/problem-tag.types";
 
-@Entity('problem_tag')
-export class ProblemTagEntity {
+import { ProblemTagTypeEntity } from "./problem-tag-type.entity";
+
+@Entity("problem_tag")
+export class ProblemTagEntity implements IProblemTagEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'varchar', length: 24, nullable: false })
+  @Column({ type: "varchar", length: 24, nullable: false })
   @Index({ unique: true })
   name: string;
 
-  @Column({
-    type: 'enum',
-    enum: ProblemTagType,
-    nullable: false,
-    default: ProblemTagType.Other,
+  @ManyToOne(() => ProblemTagTypeEntity, {
+    onDelete: "SET NULL",
   })
-  @Index({ unique: false })
-  type: ProblemTagType;
+  @JoinColumn()
+  type: Promise<ProblemTagTypeEntity>;
 
-  @Column({ type: 'integer', default: 100 })
+  @Column({ nullable: true })
+  @Index({ unique: false })
+  typeId: number;
+
+  @Column({ type: "integer", default: 100 })
   @Index({ unique: false })
   order: number;
 }

@@ -1,14 +1,16 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
-import { ProblemEntity } from './problem.entity';
+import { IProblemSampleEntity } from "@/problem/problem-sample.types";
 
-@Entity('problem_sample')
-export class ProblemSampleEntity {
+import { ProblemEntity } from "./problem.entity";
+
+@Entity("problem_sample")
+export class ProblemSampleEntity implements IProblemSampleEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
   @ManyToOne(() => ProblemEntity, problem => problem.samples, {
-    onDelete: 'CASCADE',
+    onDelete: "CASCADE",
   })
   @JoinColumn()
   problem: Promise<ProblemEntity>;
@@ -16,12 +18,12 @@ export class ProblemSampleEntity {
   @Column()
   problemId: number;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   input: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   output: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   explanation: string;
 }
