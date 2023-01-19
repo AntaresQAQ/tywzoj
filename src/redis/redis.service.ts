@@ -10,7 +10,7 @@ const REDIS_CACHE_EXPIRE_TIME = 60 * 60 * 24 * 30; // 7 days
 
 @Injectable()
 export class RedisService implements OnModuleInit {
-  private readonly client: Redis.Redis;
+  private readonly client: Redis;
 
   private readonly untilReady: Promise<void>;
 
@@ -50,7 +50,7 @@ export class RedisService implements OnModuleInit {
    *
    * Please use `cacheGet` and `cacheSet` for caching since they handle the expire time automatically.
    */
-  getClient(): Redis.Redis {
+  getClient(): Redis {
     return this.client.duplicate();
   }
 }

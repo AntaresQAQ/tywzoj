@@ -11,6 +11,7 @@ import { ProblemSetEntity } from "./problem-set.entity";
 import { ProblemSetMapEntity } from "./problem-set-map.entity";
 import { ProblemTagEntity } from "./problem-tag.entity";
 import { ProblemTagMapEntity } from "./problem-tag-map.entity";
+import { ProblemTagTypeEntity } from "./problem-tag-type.entity";
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { ProblemTagMapEntity } from "./problem-tag-map.entity";
     TypeOrmModule.forFeature([ProblemSampleEntity]),
     TypeOrmModule.forFeature([ProblemTagEntity]),
     TypeOrmModule.forFeature([ProblemTagMapEntity]),
+    TypeOrmModule.forFeature([ProblemTagTypeEntity]),
     TypeOrmModule.forFeature([ProblemSetEntity]),
     TypeOrmModule.forFeature([ProblemSetMapEntity]),
     forwardRef(() => UserModule),

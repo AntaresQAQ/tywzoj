@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import fs from "fs-extra";
-import { Redis, ValueType } from "ioredis";
+import { Redis } from "ioredis";
 import jwt from "jsonwebtoken";
 import { join } from "path";
 
@@ -11,7 +11,7 @@ import { UserService } from "@/user/user.service";
 
 // Refer to scripts/session-manager.lua for session management details
 interface IRedisWithSessionManager extends Redis {
-  callSessionManager(...args: ValueType[]): Promise<never>;
+  callSessionManager(...args: (string | number)[]): Promise<never>;
 }
 
 interface ISessionInfoInternal {

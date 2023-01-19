@@ -4,7 +4,7 @@ import { UserEntity } from "@/user/user.entity";
 
 @Entity("auth")
 export class AuthEntity {
-  @OneToOne(() => UserEntity, user => user.authPromise)
+  @OneToOne(() => UserEntity, user => user.auth)
   @JoinColumn()
   userPromise: Promise<UserEntity>;
 

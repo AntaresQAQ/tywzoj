@@ -227,7 +227,7 @@ export class AuthController {
       throw new InvalidEmailVerificationCodeException();
     }
 
-    const auth = await user.authPromise;
+    const auth = await user.auth;
     await this.authService.changePasswordAsync(auth, body.newPassword);
     await this.authSessionService.revokeAllSessionsExceptAsync(user.id, null);
   }
@@ -247,7 +247,7 @@ export class AuthController {
     if (!currentUser) throw new NotLoggedInException();
     const user = (body.userId && (await this.userService.findUserByIdAsync(body.userId))) || currentUser;
     if (!user) throw new NoSuchUserException();
-    const auth = await user.authPromise;
+    const auth = await user.auth;
 
     if (user.id === currentUser.id) {
       if (!this.authService.checkIsAllowedLogin(currentUser)) throw new PermissionDeniedException();
