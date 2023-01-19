@@ -45,5 +45,5 @@ export class UserEntity implements IUserEntity {
   registrationTime: Date;
 
   @OneToOne(() => AuthEntity, auth => auth.userPromise)
-  authPromise: Promise<AuthEntity>;
+  auth: Promise<AuthEntity>;
 }
