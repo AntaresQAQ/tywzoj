@@ -11,8 +11,8 @@ import {
   PatchUserDetailRequestBodyDto,
   PatchUserDetailResponseDto,
   UserDetailRequestParamDto,
-} from "./dto/user-detail.dto";
-import { GetUserListRequestQueryDto, GetUserListResponseDto } from "./dto/user-list.dto";
+} from "./dto/user.detail.dto";
+import { GetUserListRequestQueryDto, GetUserListResponseDto } from "./dto/user.list.dto";
 import { UserEntity } from "./user.entity";
 import { NoSuchUserException, TakeTooManyException } from "./user.exception";
 import { UserService } from "./user.service";

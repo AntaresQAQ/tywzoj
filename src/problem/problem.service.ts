@@ -114,6 +114,14 @@ export class ProblemService {
     return await queryBuilder.getMany();
   }
 
+  public async findProblemTagListAsync() {
+    return await this.problemTagRepository.find({ order: { order: "ASC" } });
+  }
+
+  public async findProblemTagTypeListAsync() {
+    return await this.problemTagTypeRepository.find({ order: { order: "ASC" } });
+  }
+
   public async getProblemBaseDetailAsync(
     problem: ProblemEntity,
     queryTags: boolean,

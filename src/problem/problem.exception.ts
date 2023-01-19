@@ -8,3 +8,9 @@ export class TakeTooManyException extends AppHttpException {
     super(HttpStatus.BAD_REQUEST, CE_ErrorCode.Problem_TakeTooMany, msg ?? "Take too many.");
   }
 }
+
+export class NoSuchProblemException extends AppHttpException {
+  constructor(msg?: string) {
+    super(HttpStatus.NOT_FOUND, CE_ErrorCode.Problem_NoSuchProblem, msg ?? "No such problem.");
+  }
+}

@@ -20,4 +20,5 @@ export const enum CE_ErrorCode {
 
   // Problem (52xx)
   Problem_TakeTooMany = 5200,
+  Problem_NoSuchProblem = 5201,
 }
