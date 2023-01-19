@@ -18,5 +18,6 @@ export const enum CE_ErrorCode {
   User_TakeTooMany = 5100,
   User_NoSuchUser = 5101,
 
-  // Problem
+  // Problem (52xx)
+  Problem_TakeTooMany = 5200,
 }
