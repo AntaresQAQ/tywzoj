@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsBoolean, IsIn, IsInt, IsOptional, IsString, Length, Min } from "class-validator";
+import { IsBoolean, IsIn, IsOptional, IsString, Length } from "class-validator";
 
+import { IsIntString, MinNumberString } from "@/common/validators";
 import { ProblemBaseDetailDto } from "@/problem/dto/problem.dto";
 
 export class GetProblemListRequestQueryDto {
@@ -13,13 +14,13 @@ export class GetProblemListRequestQueryDto {
   readonly order: "ASC" | "DESC";
 
   @ApiProperty()
-  @IsInt()
-  @Min(0)
+  @IsIntString()
+  @MinNumberString(0)
   readonly skipCount: number;
 
   @ApiProperty()
-  @IsInt()
-  @Min(1)
+  @IsIntString()
+  @MinNumberString(1)
   readonly takeCount: number;
 
   @ApiPropertyOptional({ nullable: true })
@@ -36,9 +37,10 @@ export class GetProblemListRequestQueryDto {
   @IsOptional()
   readonly tagIds?: string;
 
-  @ApiProperty()
+  @ApiPropertyOptional()
   @IsBoolean()
-  readonly queryTags: boolean;
+  @IsOptional()
+  readonly queryTags?: boolean;
 }
 
 export class GetProblemListResponseDto {

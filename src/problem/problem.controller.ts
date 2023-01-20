@@ -65,7 +65,7 @@ export class ProblemController {
     return {
       count: count,
       problems: await Promise.all(
-        problems.map(problem => this.problemService.getProblemBaseDetailAsync(problem, query.queryTags)),
+        problems.map(problem => this.problemService.getProblemBaseDetailAsync(problem, query.queryTags ?? false)),
       ),
     };
   }

@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsIn, IsInt, Min } from "class-validator";
+import { IsIn } from "class-validator";
 
+import { IsIntString, MinNumberString } from "@/common/validators";
 import { UserDetailDto } from "@/user/dto/user.dto";
 
 export class GetUserListRequestQueryDto {
@@ -9,13 +10,13 @@ export class GetUserListRequestQueryDto {
   readonly sortBy: "acceptedProblemCount" | "rating" | "id";
 
   @ApiProperty()
-  @IsInt()
-  @Min(0)
+  @IsIntString()
+  @MinNumberString(0)
   readonly skipCount: number;
 
   @ApiProperty()
-  @IsInt()
-  @Min(1)
+  @IsIntString()
+  @MinNumberString(1)
   readonly takeCount: number;
 }
 

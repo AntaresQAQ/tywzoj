@@ -1,18 +1,21 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsBoolean, IsNumber } from "class-validator";
+import { IsBoolean, IsOptional } from "class-validator";
 
+import { IsIntString, MinNumberString } from "@/common/validators";
 import { ProblemDetailDto } from "@/problem/dto/problem.dto";
 import { ProblemTagTypeDetailDto } from "@/problem/dto/problem-tag.dto";
 
 export class GetProblemDetailRequestParamDto {
   @ApiProperty()
-  @IsNumber()
+  @IsIntString()
+  @MinNumberString(0)
   displayId: number;
 }
 
 export class GetProblemDetailRequestQueryDto {
   @ApiPropertyOptional()
   @IsBoolean()
+  @IsOptional()
   queryTags?: boolean;
 }
 
