@@ -61,7 +61,8 @@ export function isUsername(str: string) {
 
 export function IsUsername(validationOptions?: ValidationOptions) {
   return If(value => typeof value === "string" && isUsername(value), {
-    message: ({ property }) => `${property} must contain only letters, numbers and "-_.#"`,
+    message: ({ property }) =>
+      `${property} must be a string of 3 ~ 24 ASCII characters and contain only letters, numbers and "-_.#$"`,
     ...validationOptions,
   });
 }
