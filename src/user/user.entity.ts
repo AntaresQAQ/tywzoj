@@ -32,13 +32,13 @@ export class UserEntity implements IUserEntity {
   @Column({ type: "integer", nullable: false, default: CE_UserLevel.General })
   level: CE_UserLevel;
 
-  @Column({ type: "integer" })
+  @Column({ type: "integer", default: 0 })
   acceptedProblemCount: number;
 
-  @Column({ type: "integer" })
+  @Column({ type: "integer", default: 0 })
   submissionCount: number;
 
-  @Column({ type: "integer" })
+  @Column({ type: "integer", default: 1000 })
   rating: number;
 
   @Column({ type: "datetime", nullable: true })
