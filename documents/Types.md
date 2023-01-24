@@ -21,11 +21,18 @@ Adding more properties outside the interfaces is allowed.
 
 ## DTO Class
 
-A DTO class symbol name should like 
+A request/response DTO class symbol name should like
 ```
 [Get, Post, Patch, Delete]?<name>[Request[Param, Query, Body], Response]Dto
 ```
 Such as "GetProblemListRequestQueryDto", "ProblemDetailRequestParam", "PatchProblemDetailRequestBodyDto".
+
+A data DTO class symbol name should like
+```
+<name>(Base)?DetailDto
+```
+
+Such as "ProblemBaseDetailDto", "ProblemDetailDto".
 
 List item DTO class should extend base entity interfaces (with extra).
 
@@ -37,3 +44,15 @@ Request param and query DTO class's properties validation must using string vali
 
 Request and response body is json, so keep the validation the same with types.
 
+## Struct
+```
+IProblemBaseEntity --> IProblemEntity
+     |                     |     |
+     |--- IProblemExtra ---|     |--> ProblemEntity
+     |                     |
+     |                     |--> IProblemEntityWithExtra
+     |                                        |
+     |--> IProblemBaseEntityWithExtra         |--> ProblemDetailDto
+                     |
+                     |--> ProblemBaseDetailDto
+```
