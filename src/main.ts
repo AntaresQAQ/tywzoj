@@ -39,7 +39,9 @@ async function bootstrapAsync() {
   // Configure CORS
   if (configService.config.security.crossOrigin.enabled) {
     app.enableCors({
-      origin: configService.config.security.crossOrigin.whitelist,
+      origin: configService.config.security.crossOrigin.whitelist.map(item =>
+        item.startsWith("regex:") ? new RegExp(item.substring(6)) : item,
+      ),
       optionsSuccessStatus: 200,
       maxAge: 7200,
     });
