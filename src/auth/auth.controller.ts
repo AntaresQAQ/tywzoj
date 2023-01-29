@@ -55,6 +55,7 @@ export class AuthController {
       },
       preference: this.configService.preferenceConfigToBeSentToUser,
       userBaseDetail: user && this.userService.getUserBaseDetail(user, user),
+      unixTimestamp: Date.now(),
     };
   }
 

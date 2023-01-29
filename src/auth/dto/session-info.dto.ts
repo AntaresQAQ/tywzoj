@@ -22,4 +22,7 @@ export class GetSessionInfoResponseDto {
 
   @ApiProperty()
   preference: PreferenceConfig;
+
+  @ApiProperty()
+  unixTimestamp: number;
 }
