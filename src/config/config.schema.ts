@@ -244,6 +244,11 @@ class SecurityPreferenceConfig {
   readonly recaptchaKey: string;
 
   @IsBoolean()
+  @IsOptional()
+  @ApiProperty()
+  readonly useRecaptchaNet: boolean;
+
+  @IsBoolean()
   @ApiProperty()
   readonly requireEmailVerification: boolean;
 }
