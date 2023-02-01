@@ -1,4 +1,5 @@
 import { forwardRef, MiddlewareConsumer, Module, NestModule, RequestMethod } from "@nestjs/common";
+import { ConfigModule as NestConfigModule } from "@nestjs/config";
 
 import { ArticleModule } from "@/article/article.module";
 import { AuthModule } from "@/auth/auth.module";
@@ -15,6 +16,9 @@ import { RateLimiterMiddleware } from "./rate-limiter.middleware";
 
 @Module({
   imports: [
+    NestConfigModule.forRoot({
+      envFilePath: [".env.local", ".env"],
+    }),
     ConfigModule,
     RecaptchaModule,
     forwardRef(() => DatabaseModule),
