@@ -1,12 +1,11 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsEmail, IsOptional, IsString } from "class-validator";
 
-import { IsUsername } from "@/common/validators";
 import { UserBaseDetailDto } from "@/user/dto/user.dto";
 
 export class PostLoginRequestBodyDto {
   @ApiProperty()
-  @IsUsername()
+  @IsString()
   @IsOptional()
   readonly username?: string;
 
@@ -22,8 +21,8 @@ export class PostLoginRequestBodyDto {
 
 export class PostLoginResponseDto {
   @ApiProperty()
-  token?: string;
+  token: string;
 
   @ApiProperty()
-  userBaseDetail?: UserBaseDetailDto;
+  userBaseDetail: UserBaseDetailDto;
 }
