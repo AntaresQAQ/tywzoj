@@ -6,6 +6,7 @@ import { json } from "express";
 import getGitRepoInfo from "git-repo-info";
 import moment from "moment";
 
+import { ValidationErrorException } from "@/common/exception";
 import { RecaptchaFilter } from "@/recaptcha/recaptcha.filter";
 
 import { AppModule } from "./app.module";
@@ -32,7 +33,14 @@ async function bootstrapAsync() {
   const configService = app.get(ConfigService);
   app.setGlobalPrefix("api");
   app.useGlobalFilters(app.get(ErrorFilter), app.get(RecaptchaFilter));
-  app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      exceptionFactory: errors => new ValidationErrorException(errors),
+    }),
+  );
   app.use(json({ limit: "1024mb" }));
   app.set("trust proxy", configService.config.server.trustProxy);
 

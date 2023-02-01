@@ -1,10 +1,13 @@
 import { HttpException, HttpStatus } from "@nestjs/common";
+import { ValidationError } from "class-validator";
+
+import { isProduction } from "@/common/utils";
 
 import { CE_ErrorCode } from "./error-code";
 
 export class AppHttpException extends HttpException {
-  constructor(status: number, error: CE_ErrorCode | number, msg?: string) {
-    super({ error, msg }, status);
+  constructor(status: number, code: CE_ErrorCode | number, msg?: string, extra?: unknown) {
+    super({ code, msg, extra }, status);
   }
 }
 
@@ -17,5 +20,16 @@ export class AuthRequiredException extends AppHttpException {
 export class PermissionDeniedException extends AppHttpException {
   constructor(msg?: string) {
     super(HttpStatus.FORBIDDEN, CE_ErrorCode.PermissionDenied, msg ?? "Permission denied.");
+  }
+}
+
+export class ValidationErrorException extends AppHttpException {
+  constructor(validationErrors: ValidationError[]) {
+    super(
+      HttpStatus.BAD_REQUEST,
+      CE_ErrorCode.ValidationError,
+      "Validation Error",
+      isProduction() ? undefined : validationErrors,
+    );
   }
 }

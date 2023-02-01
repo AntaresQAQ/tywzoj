@@ -1,7 +1,11 @@
 export const enum CE_ErrorCode {
   // Global
+  Unknown = -1,
   AuthRequired = 401,
   PermissionDenied = 403,
+  ServerError = 500,
+  RecaptchaError = 1000,
+  ValidationError = 1001,
 
   // Auth (50xx)
   Auth_NoSuchUser = 5000,
