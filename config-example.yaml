@@ -60,6 +60,7 @@ preference:
   security:
     recaptchaEnabled: false
     recaptchaKey:
+    useRecaptchaNet: false
     requireEmailVerification: false
   pagination:
     homepageNotice: 10
