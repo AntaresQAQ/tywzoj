@@ -1,3 +1,5 @@
+// Attention!
+// Do NOT modify the existing code.
 export const enum CE_ErrorCode {
   // Global
   Unknown = -1,
@@ -6,6 +8,7 @@ export const enum CE_ErrorCode {
   ServerError = 500,
   RecaptchaError = 1000,
   ValidationError = 1001,
+  TakeTooMany = 1002,
 
   // Auth (50xx)
   Auth_NoSuchUser = 5000,
@@ -19,10 +22,8 @@ export const enum CE_ErrorCode {
   Auth_EmailVerificationCodeRateLimited = 5008,
 
   // User (51xx)
-  User_TakeTooMany = 5100,
-  User_NoSuchUser = 5101,
+  User_NoSuchUser = 5100,
 
   // Problem (52xx)
-  Problem_TakeTooMany = 5200,
-  Problem_NoSuchProblem = 5201,
+  Problem_NoSuchProblem = 5200,
 }

@@ -1,7 +1,7 @@
 import { Controller, Get, Param, Query } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 
-import { AuthRequiredException, PermissionDeniedException } from "@/common/exception";
+import { AuthRequiredException, PermissionDeniedException, TakeTooManyException } from "@/common/exception";
 import { CurrentUser } from "@/common/user.decorator";
 import { CE_Permissions, checkIsAllowed } from "@/common/user-level";
 import { ConfigService } from "@/config/config.service";
@@ -14,7 +14,7 @@ import {
 } from "./dto/problem.detail.dto";
 import { GetProblemListRequestQueryDto, GetProblemListResponseDto } from "./dto/problem.list.dto";
 import { GetProblemTagListResponseDto } from "./dto/problem-tag.list.dto";
-import { NoSuchProblemException, TakeTooManyException } from "./problem.exception";
+import { NoSuchProblemException } from "./problem.exception";
 import { ProblemService } from "./problem.service";
 
 @ApiTags("Problem")

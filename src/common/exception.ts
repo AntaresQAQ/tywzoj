@@ -33,3 +33,9 @@ export class ValidationErrorException extends AppHttpException {
     );
   }
 }
+
+export class TakeTooManyException extends AppHttpException {
+  constructor(msg?: string) {
+    super(HttpStatus.BAD_REQUEST, CE_ErrorCode.TakeTooMany, msg ?? "Take too many.");
+  }
+}

@@ -35,7 +35,7 @@ export class PatchUserDetailRequestBodyDto implements HttpPatch<IUserEntity> {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  information?: string;
+  readonly information?: string;
 
   @ApiPropertyOptional()
   @IsOptional()

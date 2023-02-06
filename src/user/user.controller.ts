@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Param, Patch, Query } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 
-import { AuthRequiredException, PermissionDeniedException } from "@/common/exception";
+import { AuthRequiredException, PermissionDeniedException, TakeTooManyException } from "@/common/exception";
 import { CurrentUser } from "@/common/user.decorator";
 import { isEmptyValues } from "@/common/utils";
 import { ConfigService } from "@/config/config.service";
@@ -14,7 +14,7 @@ import {
 } from "./dto/user.detail.dto";
 import { GetUserListRequestQueryDto, GetUserListResponseDto } from "./dto/user.list.dto";
 import { UserEntity } from "./user.entity";
-import { NoSuchUserException, TakeTooManyException } from "./user.exception";
+import { NoSuchUserException } from "./user.exception";
 import { UserService } from "./user.service";
 
 @ApiTags("User")
