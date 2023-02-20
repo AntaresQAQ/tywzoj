@@ -32,7 +32,7 @@ A data DTO class symbol name should like
 <name>(Base)?DetailDto
 ```
 
-Such as "ProblemBaseDetailDto", "ProblemDetailDto".
+Such as "ProblemAtomicDetailDto", "ProblemBaseDetailDto", "ProblemDetailDto".
 
 List item DTO class should extend base entity interfaces (with extra).
 
@@ -46,13 +46,29 @@ Request and response body is json, so keep the validation the same with types.
 
 ## Struct
 ```
-IProblemBaseEntity --> IProblemEntity
-     |                     |     |
-     |--- IProblemExtra ---|     |--> ProblemEntity
-     |                     |
-     |                     |--> IProblemEntityWithExtra
-     |                                        |
-     |--> IProblemBaseEntityWithExtra         |--> ProblemDetailDto
-                     |
-                     |--> ProblemBaseDetailDto
+|----------------------------------------------------------------------|
+|                                                                      |
+|    IProblemAtomicEntity --> IProblemBaseEntity --> IProblemEntity    |
+|     |                        |                             |         |
+|   IProblemAtomicExtra ---> IProblemBaseExtra ---> IProblemExtra      |
+|     |                        |                             |         |
+|     |                        |  IProblemEntityWithExtra <--|         |
+|     |                        |          |                            |
+|     |                        |          |--> ProblemDetailDto        |
+|     |                        |                                       |
+|     |                        |--> IProblemBaseEntityWithExtra        |
+|     |                                                   |            |
+|     |                           ProblemBaseDetailDto <--|            |
+|     |                                                                |
+|     |--> IProblemAtomicEntityWithExtra --> ProblemAtomicDetailDto    |
+|                                                                      |
+|----------------------------------------------------------------------|
 ```
+
+## Usage 
+
+AtomicDetailDto should be used on search box
+
+BaseDetailDto should be used on List page
+
+DetailDto should be used on detail page

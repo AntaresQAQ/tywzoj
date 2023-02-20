@@ -6,9 +6,12 @@ export const enum CE_UserGender {
   Other = "Other",
 }
 
-export interface IUserBaseEntity {
+export interface IUserAtomicEntity {
   id: number;
   username: string;
+}
+
+export interface IUserBaseEntity extends IUserAtomicEntity {
   email: string;
   nickname?: string;
   information?: string;
@@ -23,9 +26,13 @@ export interface IUserEntity extends IUserBaseEntity {
   registrationTime: Date;
 }
 
-export interface IUserExtra {
+export interface IUserAtomicExtra {
   avatar: string;
 }
 
-export type IUserBaseEntityWithExtra = IUserBaseEntity & IUserExtra;
+export interface IUserBaseExtra extends IUserAtomicExtra {}
+export interface IUserExtra extends IUserBaseExtra {}
+
+export type IUserAtomicEntityWithExtra = IUserAtomicEntity & IUserAtomicExtra;
+export type IUserBaseEntityWithExtra = IUserBaseEntity & IUserBaseExtra;
 export type IUserEntityWithExtra = IUserEntity & IUserExtra;

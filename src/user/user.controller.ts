@@ -5,6 +5,7 @@ import { AuthRequiredException, PermissionDeniedException, TakeTooManyException 
 import { CurrentUser } from "@/common/user.decorator";
 import { isEmptyValues } from "@/common/utils";
 import { ConfigService } from "@/config/config.service";
+import { GetUserSearchResponseDto, UserSearchRequestQueryDto } from "@/user/dto/user.search.dto";
 
 import {
   GetUserDetailResponseDto,
@@ -89,5 +90,27 @@ export class UserController {
     await this.userService.updateUserAsync(user.id, body);
 
     return this.userService.getUserDetail(await this.userService.findUserByIdAsync(user.id), currentUser);
+  }
+
+  @Get("search")
+  @ApiOperation({
+    summary: "A HTTP GET request to search user base detail.",
+  })
+  @ApiBearerAuth()
+  async getUserSearchAsync(@Query() query: UserSearchRequestQueryDto): Promise<GetUserSearchResponseDto> {
+    const { key, strict = false } = query;
+    if (strict) {
+      const user = await this.userService.findUserByUsernameAsync(key);
+      if (!user) throw new NoSuchUserException();
+      return {
+        users: [this.userService.getUserAtomicDetail(user)],
+      };
+    } else {
+      return {
+        users: (
+          await this.userService.searchUsersByUsernameAsync(key, this.configService.config.queryLimit.searchUser)
+        ).map(this.userService.getUserAtomicDetail),
+      };
+    }
   }
 }

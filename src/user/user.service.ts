@@ -1,12 +1,12 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import crypto from "crypto";
-import { Repository } from "typeorm";
+import { Like, Repository } from "typeorm";
 
 import { CE_Permissions, checkIsAllowed } from "@/common/user-level";
 
 import { UserEntity } from "./user.entity";
-import { IUserBaseEntityWithExtra, IUserEntityWithExtra } from "./user.types";
+import { IUserAtomicEntityWithExtra, IUserBaseEntityWithExtra, IUserEntityWithExtra } from "./user.types";
 
 @Injectable()
 export class UserService {
@@ -41,6 +41,10 @@ export class UserService {
     });
   }
 
+  async searchUsersByUsernameAsync(keyword: string, take: number): Promise<UserEntity[]> {
+    return await this.userRepository.find({ where: { username: Like(`%${keyword}%`) }, take });
+  }
+
   async updateUserAsync(id: number, user: Partial<UserEntity>) {
     delete user.id;
     return await this.userRepository.update(id, user);
@@ -50,21 +54,27 @@ export class UserService {
     return crypto.createHash("md5").update(email.trim().toLowerCase()).digest("hex");
   }
 
+  getUserAtomicDetail(user: UserEntity): IUserAtomicEntityWithExtra {
+    return {
+      id: user.id,
+      username: user.username,
+      avatar: UserService.getUserAvatar(user),
+    };
+  }
+
   /**
    * If the current user is ADMIN or self, the email will be returned
    * even if the user set public email to false.
    */
   getUserBaseDetail(user: UserEntity, currentUser: UserEntity): IUserBaseEntityWithExtra {
-    const shouldReturnEmail = currentUser.publicEmail || this.checkIsAllowedEdit(user, currentUser);
+    const shouldReturnEmail = user.publicEmail || this.checkIsAllowedEdit(user, currentUser);
 
     return {
-      id: user.id,
-      username: user.username,
+      ...this.getUserAtomicDetail(user),
       email: shouldReturnEmail ? user.email : null,
-      nickname: user.nickname || undefined,
+      nickname: user.nickname,
       level: user.level,
       information: user.information,
-      avatar: UserService.getUserAvatar(user),
     };
   }
 
