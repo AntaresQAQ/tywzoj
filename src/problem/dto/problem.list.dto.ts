@@ -1,7 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsBoolean, IsIn, IsOptional, IsString, Length } from "class-validator";
+import { Transform, Type } from "class-transformer";
+import { IsBoolean, IsIn, IsInt, IsOptional, IsString, Length, Min } from "class-validator";
 
-import { IsIntString, MinNumberString } from "@/common/validators";
+import { transformBoolean, transformNumberArray } from "@/common/transformers";
 import { ProblemBaseDetailDto } from "@/problem/dto/problem.dto";
 
 export class GetProblemListRequestQueryDto {
@@ -14,13 +15,15 @@ export class GetProblemListRequestQueryDto {
   readonly order: "ASC" | "DESC";
 
   @ApiProperty()
-  @IsIntString()
-  @MinNumberString(0)
+  @IsInt()
+  @Min(0)
+  @Type(() => Number)
   readonly skipCount: number;
 
   @ApiProperty()
-  @IsIntString()
-  @MinNumberString(1)
+  @IsInt()
+  @Min(1)
+  @Type(() => Number)
   readonly takeCount: number;
 
   @ApiPropertyOptional({ nullable: true })
@@ -31,15 +34,19 @@ export class GetProblemListRequestQueryDto {
 
   @ApiProperty()
   @IsBoolean()
+  @Transform(transformBoolean)
   readonly keywordMatchesId: boolean;
 
   @ApiPropertyOptional({ nullable: true })
   @IsOptional()
-  readonly tagIds?: string;
+  @IsInt({ each: true })
+  @Transform(transformNumberArray)
+  readonly tagIds?: number[];
 
   @ApiPropertyOptional()
   @IsBoolean()
   @IsOptional()
+  @Transform(transformBoolean)
   readonly queryTags?: boolean;
 }
 

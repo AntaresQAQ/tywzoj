@@ -35,6 +35,7 @@ async function bootstrapAsync() {
   app.useGlobalFilters(app.get(ErrorFilter), app.get(RecaptchaFilter));
   app.useGlobalPipes(
     new ValidationPipe({
+      always: true,
       transform: true,
       whitelist: true,
       forbidNonWhitelisted: true,

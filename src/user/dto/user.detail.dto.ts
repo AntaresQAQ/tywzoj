@@ -1,17 +1,19 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsEmail, IsIn, IsNumber, IsOptional, IsString, Max, MaxLength, Min } from "class-validator";
+import { Type } from "class-transformer";
+import { IsEmail, IsIn, IsInt, IsNumber, IsOptional, IsString, Max, MaxLength, Min } from "class-validator";
 
 import { HttpPatch } from "@/common/types";
 import { CE_UserLevel } from "@/common/user-level";
-import { IsIntString, IsUsername, MinNumberString } from "@/common/validators";
+import { IsUsername } from "@/common/validators";
 import { CE_UserGender, IUserEntity } from "@/user/user.types";
 
 import { UserDetailDto } from "./user.dto";
 
 export class UserDetailRequestParamDto {
   @ApiProperty()
-  @IsIntString()
-  @MinNumberString(0)
+  @IsInt()
+  @Min(0)
+  @Type(() => Number)
   readonly id: number;
 }
 

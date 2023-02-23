@@ -35,13 +35,7 @@ export class ProblemController {
     if (!checkIsAllowed(currentUser.level, CE_Permissions.AccessSite)) throw new PermissionDeniedException();
     if (query.takeCount > this.configService.config.queryLimit.problem) throw new TakeTooManyException();
 
-    const tagIds =
-      query.tagIds &&
-      query.tagIds
-        .trim()
-        .split(",")
-        .map(x => Number(x.trim()))
-        .filter(x => Number.isSafeInteger(x));
+    const tagIds = query.tagIds && query.tagIds.filter(x => Number.isSafeInteger(x));
 
     const [problems, count] = await this.problemService.findProblemListAsync(
       query.sortBy,
