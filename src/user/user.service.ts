@@ -50,7 +50,7 @@ export class UserService {
     return await this.userRepository.update(id, user);
   }
   private static getUserAvatar(user: UserEntity): string {
-    const { email = "" } = user;
+    const email = user.email || "";
     return crypto.createHash("md5").update(email.trim().toLowerCase()).digest("hex");
   }
 

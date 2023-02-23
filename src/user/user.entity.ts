@@ -44,6 +44,6 @@ export class UserEntity implements IUserEntity {
   @Column({ type: "datetime", nullable: true })
   registrationTime: Date;
 
-  @OneToOne(() => AuthEntity, auth => auth.userPromise)
+  @OneToOne(() => AuthEntity, auth => auth.user)
   auth: Promise<AuthEntity>;
 }
