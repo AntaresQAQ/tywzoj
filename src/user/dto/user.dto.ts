@@ -15,7 +15,7 @@ export class UserAtomicDetailDto implements IUserAtomicEntityWithExtra {
   @ApiProperty()
   username: string;
 
-  @ApiProperty()
+  @ApiProperty({ nullable: true })
   avatar: string;
 }
 

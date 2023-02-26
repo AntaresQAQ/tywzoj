@@ -49,9 +49,9 @@ export class UserService {
     delete user.id;
     return await this.userRepository.update(id, user);
   }
-  private static getUserAvatar(user: UserEntity): string {
-    const email = user.email || "";
-    return crypto.createHash("md5").update(email.trim().toLowerCase()).digest("hex");
+  private static getUserAvatar(user: UserEntity) {
+    if (!user.email) return null;
+    return crypto.createHash("md5").update(user.email.trim().toLowerCase()).digest("hex");
   }
 
   getUserAtomicDetail(user: UserEntity): IUserAtomicEntityWithExtra {

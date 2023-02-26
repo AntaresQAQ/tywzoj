@@ -2,7 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform, Type } from "class-transformer";
 import { IsBoolean, IsIn, IsInt, IsOptional, IsString, Length, Min } from "class-validator";
 
-import { transformBoolean, transformNumberArray } from "@/common/transformers";
+import { arrayTransformerFactory, booleanTransformerFactory } from "@/common/transformers";
 import { ProblemBaseDetailDto } from "@/problem/dto/problem.dto";
 
 export class GetProblemListRequestQueryDto {
@@ -34,19 +34,19 @@ export class GetProblemListRequestQueryDto {
 
   @ApiProperty()
   @IsBoolean()
-  @Transform(transformBoolean)
+  @Transform(booleanTransformerFactory())
   readonly keywordMatchesId: boolean;
 
   @ApiPropertyOptional({ nullable: true })
   @IsOptional()
   @IsInt({ each: true })
-  @Transform(transformNumberArray)
+  @Transform(arrayTransformerFactory({ transformItem: value => Number(value) }))
   readonly tagIds?: number[];
 
   @ApiPropertyOptional()
   @IsBoolean()
   @IsOptional()
-  @Transform(transformBoolean)
+  @Transform(booleanTransformerFactory())
   readonly queryTags?: boolean;
 }
 

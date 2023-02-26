@@ -1,33 +1,60 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { TransformFnParams } from "class-transformer";
 
-export function transformBoolean({ value }: TransformFnParams) {
-  if ([true, "enabled", "true", 1, "1"].includes(value)) {
-    return true;
-  }
+export type TransformerFactory<T = undefined> = (options?: T) => (props: TransformFnParams) => any;
 
-  if ([false, "disabled", "false", 0, "0"].includes(value)) {
-    return false;
-  }
+export const booleanTransformerFactory: TransformerFactory<{
+  /**
+   * Values that need to be converted to true
+   * @default [true, "enabled", "true", "on", 1, "1"]
+   */
+  trueValues?: any[];
+  /**
+   * Values that need to be converted to false
+   * @default [false, "disabled", "false", "off", 0, "0"]
+   */
+  falseValues?: any[];
+}> = (options = {}) => {
+  const {
+    trueValues = [true, "enabled", "true", "on", 1, "1"],
+    falseValues = [false, "disabled", "false", "off", 0, "0"],
+  } = options;
 
-  return value;
-}
+  return ({ value }) => {
+    if (trueValues.includes(value)) {
+      return true;
+    }
 
-export function transformStringArray({ value }: TransformFnParams) {
-  if (typeof value === "string") {
-    return value
-      .trim()
-      .split(",")
-      .map(x => x.trim());
-  }
-  return value;
-}
+    if (falseValues.includes(value)) {
+      return false;
+    }
 
-export function transformNumberArray({ value }: TransformFnParams) {
-  if (typeof value === "string") {
-    return value
-      .trim()
-      .split(",")
-      .map(x => Number(x.trim()));
-  }
-  return value;
-}
+    return value;
+  };
+};
+
+export const arrayTransformerFactory: TransformerFactory<{
+  /**
+   * A substring that the string can split to an array by
+   * @default ","
+   */
+  split?: string;
+  /**
+   * A function to convert each item
+   * @param {string} value Each strings in the array
+   * @return {any} Converted value
+   */
+  transformItem?: (value: string) => any;
+}> = (options = {}) => {
+  const { split = ",", transformItem = value => value } = options;
+
+  return ({ value }) => {
+    if (typeof value === "string") {
+      return value
+        .trim()
+        .split(split)
+        .map(x => transformItem(x.trim()));
+    }
+    return value;
+  };
+};

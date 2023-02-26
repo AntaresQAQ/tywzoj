@@ -2,7 +2,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
 import { IsBoolean, IsOptional, IsString } from "class-validator";
 
-import { transformBoolean } from "@/common/transformers";
+import { booleanTransformerFactory } from "@/common/transformers";
 import { UserAtomicDetailDto } from "@/user/dto/user.dto";
 
 export class UserSearchRequestQueryDto {
@@ -13,7 +13,7 @@ export class UserSearchRequestQueryDto {
   @ApiProperty()
   @IsOptional()
   @IsBoolean()
-  @Transform(transformBoolean)
+  @Transform(booleanTransformerFactory())
   readonly strict?: boolean;
 }
 
