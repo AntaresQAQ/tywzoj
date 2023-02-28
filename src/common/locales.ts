@@ -9,11 +9,11 @@ export const enum CE_Language {
 }
 
 export const languages: CE_Language[] = [
-  CE_Language.ar,
+  // CE_Language.ar,
   CE_Language.en,
-  CE_Language.fr,
-  CE_Language.ja,
-  CE_Language.ko,
+  // CE_Language.fr,
+  // CE_Language.ja,
+  // CE_Language.ko,
   CE_Language.zh_cn,
-  CE_Language.zh_hk,
+  // CE_Language.zh_hk,
 ];

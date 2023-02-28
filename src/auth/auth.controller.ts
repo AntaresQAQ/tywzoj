@@ -167,7 +167,7 @@ export class AuthController {
     }
 
     const code = await this.authVerificationCodeService.generateAsync(CE_VerificationCodeType.Register, body.email);
-    await this.mailService.sendMailAsync(CE_MailTemplate.RegisterVerificationCode, { code }, body.email);
+    await this.mailService.sendMailAsync(CE_MailTemplate.RegisterVerificationCode, body.lang, { code }, body.email);
   }
 
   @Post("sendChangeEmailVerificationCode")
@@ -192,7 +192,7 @@ export class AuthController {
     if (!(await this.userService.checkEmailAvailabilityAsync(body.email))) throw new DuplicateEmailException();
 
     const code = await this.authVerificationCodeService.generateAsync(CE_VerificationCodeType.ChangeEmail, body.email);
-    await this.mailService.sendMailAsync(CE_MailTemplate.ChangeEmailVerificationCode, { code }, body.email);
+    await this.mailService.sendMailAsync(CE_MailTemplate.ChangeEmailVerificationCode, body.lang, { code }, body.email);
   }
 
   @Post("sendResetPasswordEmailVerificationCode")
@@ -218,7 +218,12 @@ export class AuthController {
       CE_VerificationCodeType.ResetPassword,
       body.email,
     );
-    await this.mailService.sendMailAsync(CE_MailTemplate.ResetPasswordVerificationCode, { code }, body.email);
+    await this.mailService.sendMailAsync(
+      CE_MailTemplate.ResetPasswordVerificationCode,
+      body.lang,
+      { code },
+      body.email,
+    );
   }
 
   @Post("resetForgotPassword")
