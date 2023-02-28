@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsEmail, IsNumber, IsOptional, IsString, Length } from "class-validator";
 
-export class PostResetForgotPasswordBodyDto {
+export abstract class PostResetForgotPasswordBodyDto {
   @ApiProperty()
   @IsEmail()
   readonly email: string;
@@ -17,7 +17,7 @@ export class PostResetForgotPasswordBodyDto {
   readonly newPassword: string;
 }
 
-export class PostResetPasswordBodyDto {
+export abstract class PostResetPasswordBodyDto {
   @ApiProperty()
   @IsNumber()
   userId?: number;

@@ -6,14 +6,14 @@ import { UserBaseDetailDto } from "@/user/dto/user.dto";
 
 import { ServerVersionDto } from "./server-version.dto";
 
-export class GetSessionInfoRequestQueryDto {
+export abstract class GetSessionInfoRequestQueryDto {
   @ApiProperty()
   @IsString()
   @IsOptional()
   readonly token?: string;
 }
 
-export class GetSessionInfoResponseDto {
+export abstract class GetSessionInfoResponseDto {
   @ApiProperty()
   userBaseDetail?: UserBaseDetailDto;
 

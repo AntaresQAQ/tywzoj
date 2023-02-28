@@ -2,6 +2,7 @@ import { Body, Controller, Get, Post, Query, Req } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { Recaptcha } from "@nestlab/google-recaptcha";
 
+import { GetCheckUsernameRequestQueryDto, GetCheckUsernameResponseDto } from "@/auth/dto/check-username.dto";
 import { PermissionDeniedException } from "@/common/exception";
 import { CurrentUser } from "@/common/user.decorator";
 import { ConfigService } from "@/config/config.service";
@@ -56,6 +57,18 @@ export class AuthController {
       preference: this.configService.preferenceConfigToBeSentToUser,
       userBaseDetail: user && this.userService.getUserBaseDetail(user, user),
       unixTimestamp: Date.now(),
+    };
+  }
+
+  @Get("checkUsername")
+  @ApiOperation({
+    summary: "A HTTP GET request to check username if available.",
+    description: "Recaptcha required.",
+  })
+  @Recaptcha()
+  async checkUsernameAsync(@Query() query: GetCheckUsernameRequestQueryDto): Promise<GetCheckUsernameResponseDto> {
+    return {
+      available: await this.userService.checkUsernameAvailabilityAsync(query.username),
     };
   }
 

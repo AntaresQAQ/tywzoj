@@ -3,7 +3,7 @@ import { IsEmail, IsOptional, IsString } from "class-validator";
 
 import { UserBaseDetailDto } from "@/user/dto/user.dto";
 
-export class PostLoginRequestBodyDto {
+export abstract class PostLoginRequestBodyDto {
   @ApiProperty()
   @IsString()
   @IsOptional()
@@ -19,7 +19,7 @@ export class PostLoginRequestBodyDto {
   readonly password: string;
 }
 
-export class PostLoginResponseDto {
+export abstract class PostLoginResponseDto {
   @ApiProperty()
   token: string;
 
