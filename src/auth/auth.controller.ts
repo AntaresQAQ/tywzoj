@@ -56,6 +56,7 @@ export class AuthController {
       },
       preference: this.configService.preferenceConfigToBeSentToUser,
       userBaseDetail: user && this.userService.getUserBaseDetail(user, user),
+      userPreference: user && (await this.userService.getUserPreferenceAsync(user)),
       unixTimestamp: Date.now(),
     };
   }
@@ -103,6 +104,7 @@ export class AuthController {
     return {
       token: await this.authSessionService.newSessionAsync(user, req.ip, req.headers["user-agent"]),
       userBaseDetail: this.userService.getUserBaseDetail(user, user),
+      userPreference: await this.userService.getUserPreferenceAsync(user),
     };
   }
 
@@ -142,7 +144,8 @@ export class AuthController {
 
     return {
       token: await this.authSessionService.newSessionAsync(user, req.ip, req.headers["user-agent"]),
-      userBaseDetail: await this.userService.getUserBaseDetail(user, user),
+      userBaseDetail: this.userService.getUserBaseDetail(user, user),
+      userPreference: await this.userService.getUserPreferenceAsync(user),
     };
   }
 

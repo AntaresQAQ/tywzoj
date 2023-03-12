@@ -3,6 +3,7 @@ import { IsOptional, IsString } from "class-validator";
 
 import { PreferenceConfig } from "@/config/config.schema";
 import { UserBaseDetailDto } from "@/user/dto/user.dto";
+import { UserPreferenceDto } from "@/user/dto/user-preference.dto";
 
 import { ServerVersionDto } from "./server-version.dto";
 
@@ -16,6 +17,9 @@ export abstract class GetSessionInfoRequestQueryDto {
 export abstract class GetSessionInfoResponseDto {
   @ApiProperty()
   userBaseDetail?: UserBaseDetailDto;
+
+  @ApiProperty()
+  userPreference?: UserPreferenceDto;
 
   @ApiProperty()
   serverVersion: ServerVersionDto;

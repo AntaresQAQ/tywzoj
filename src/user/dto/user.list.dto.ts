@@ -4,7 +4,7 @@ import { IsIn, IsInt, Min } from "class-validator";
 
 import { UserDetailDto } from "@/user/dto/user.dto";
 
-export class GetUserListRequestQueryDto {
+export abstract class GetUserListRequestQueryDto {
   @ApiProperty({ enum: ["acceptedProblemCount", "rating", "id"] })
   @IsIn(["acceptedProblemCount", "rating", "id"])
   readonly sortBy: "acceptedProblemCount" | "rating" | "id";
@@ -22,7 +22,7 @@ export class GetUserListRequestQueryDto {
   readonly takeCount: number;
 }
 
-export class GetUserListResponseDto {
+export abstract class GetUserListResponseDto {
   @ApiProperty({ type: UserDetailDto })
   users: UserDetailDto[];
 

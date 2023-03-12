@@ -1,14 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 import { CE_UserLevel } from "@/common/user-level";
-import {
-  CE_UserGender,
-  IUserAtomicEntityWithExtra,
-  IUserBaseEntityWithExtra,
-  IUserEntityWithExtra,
-} from "@/user/user.types";
+import { IUserAtomicEntityWithExtra, IUserBaseEntityWithExtra, IUserEntityWithExtra } from "@/user/user.types";
 
-export class UserAtomicDetailDto implements IUserAtomicEntityWithExtra {
+export abstract class UserAtomicDetailDto implements IUserAtomicEntityWithExtra {
   @ApiProperty()
   id: number;
 
@@ -19,7 +14,7 @@ export class UserAtomicDetailDto implements IUserAtomicEntityWithExtra {
   avatar: string;
 }
 
-export class UserBaseDetailDto extends UserAtomicDetailDto implements IUserBaseEntityWithExtra {
+export abstract class UserBaseDetailDto extends UserAtomicDetailDto implements IUserBaseEntityWithExtra {
   @ApiProperty()
   email: string;
 
@@ -33,10 +28,7 @@ export class UserBaseDetailDto extends UserAtomicDetailDto implements IUserBaseE
   nickname?: string;
 }
 
-export class UserDetailDto extends UserBaseDetailDto implements IUserEntityWithExtra {
-  @ApiPropertyOptional()
-  gender?: CE_UserGender;
-
+export abstract class UserDetailDto extends UserBaseDetailDto implements IUserEntityWithExtra {
   @ApiProperty()
   acceptedProblemCount: number;
 

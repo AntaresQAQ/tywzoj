@@ -5,7 +5,7 @@ import { IsBoolean, IsOptional, IsString } from "class-validator";
 import { booleanTransformerFactory } from "@/common/transformers";
 import { UserAtomicDetailDto } from "@/user/dto/user.dto";
 
-export class UserSearchRequestQueryDto {
+export abstract class UserSearchRequestQueryDto {
   @ApiProperty()
   @IsString()
   readonly key: string;
@@ -17,7 +17,7 @@ export class UserSearchRequestQueryDto {
   readonly strict?: boolean;
 }
 
-export class GetUserSearchResponseDto {
+export abstract class GetUserSearchResponseDto {
   @ApiProperty()
   users: UserAtomicDetailDto[];
 }

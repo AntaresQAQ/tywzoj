@@ -2,7 +2,8 @@ import { Column, Entity, Index, OneToOne, PrimaryGeneratedColumn } from "typeorm
 
 import { AuthEntity } from "@/auth/auth.entity";
 import { CE_UserLevel } from "@/common/user-level";
-import { CE_UserGender, IUserEntity } from "@/user/user.types";
+import { IUserEntity } from "@/user/user.types";
+import { UserPreferenceEntity } from "@/user/user-preference.entity";
 
 @Entity("user")
 export class UserEntity implements IUserEntity {
@@ -22,9 +23,6 @@ export class UserEntity implements IUserEntity {
 
   @Column({ type: "varchar", length: 24, nullable: true })
   nickname: string;
-
-  @Column({ type: "varchar", length: 24, nullable: true })
-  gender: CE_UserGender;
 
   @Column({ type: "text", nullable: true })
   information: string;
@@ -46,4 +44,7 @@ export class UserEntity implements IUserEntity {
 
   @OneToOne(() => AuthEntity, auth => auth.user)
   auth: Promise<AuthEntity>;
+
+  @OneToOne(() => UserPreferenceEntity, preference => preference.user)
+  preference: Promise<UserPreferenceEntity>;
 }

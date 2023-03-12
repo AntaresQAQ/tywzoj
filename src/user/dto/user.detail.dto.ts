@@ -1,15 +1,15 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsEmail, IsIn, IsInt, IsNumber, IsOptional, IsString, Max, MaxLength, Min } from "class-validator";
+import { IsEmail, IsInt, IsNumber, IsOptional, IsString, Max, MaxLength, Min } from "class-validator";
 
 import { HttpPatch } from "@/common/types";
 import { CE_UserLevel } from "@/common/user-level";
 import { IsUsername } from "@/common/validators";
-import { CE_UserGender, IUserEntity } from "@/user/user.types";
+import { IUserEntity } from "@/user/user.types";
 
 import { UserDetailDto } from "./user.dto";
 
-export class UserDetailRequestParamDto {
+export abstract class UserDetailRequestParamDto {
   @ApiProperty()
   @IsInt()
   @Min(0)
@@ -17,7 +17,7 @@ export class UserDetailRequestParamDto {
   readonly id: number;
 }
 
-export class PatchUserDetailRequestBodyDto implements HttpPatch<IUserEntity> {
+export abstract class PatchUserDetailRequestBodyDto implements HttpPatch<IUserEntity> {
   @ApiPropertyOptional()
   @IsOptional()
   @IsUsername()
@@ -45,12 +45,7 @@ export class PatchUserDetailRequestBodyDto implements HttpPatch<IUserEntity> {
   @Min(CE_UserLevel.Blocked)
   @Max(CE_UserLevel.Admin)
   readonly level?: number;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsIn([CE_UserGender.Male, CE_UserGender.Female, CE_UserGender.Other])
-  readonly gender?: CE_UserGender;
 }
 
-export class GetUserDetailResponseDto extends UserDetailDto {}
-export class PatchUserDetailResponseDto extends UserDetailDto {}
+export abstract class GetUserDetailResponseDto extends UserDetailDto {}
+export abstract class PatchUserDetailResponseDto extends UserDetailDto {}

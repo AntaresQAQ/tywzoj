@@ -1,11 +1,18 @@
-import { Body, Controller, Get, Param, Patch, Query } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Query } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { Recaptcha } from "@nestlab/google-recaptcha";
 
+import { AuthSessionService } from "@/auth/auth-session.service";
 import { AuthRequiredException, PermissionDeniedException, TakeTooManyException } from "@/common/exception";
 import { CurrentUser } from "@/common/user.decorator";
 import { isEmptyValues } from "@/common/utils";
 import { ConfigService } from "@/config/config.service";
 import { GetUserSearchResponseDto, UserSearchRequestQueryDto } from "@/user/dto/user.search.dto";
+import {
+  PatchUserPreferenceRequestBodyDto,
+  UserPreferenceRequestParamDto,
+  UserPreferenceResponseDto,
+} from "@/user/dto/user-preference.dto";
 
 import {
   GetUserDetailResponseDto,
@@ -21,7 +28,11 @@ import { UserService } from "./user.service";
 @ApiTags("User")
 @Controller("user")
 export class UserController {
-  constructor(readonly userService: UserService, readonly configService: ConfigService) {}
+  constructor(
+    readonly userService: UserService,
+    readonly configService: ConfigService,
+    private readonly authSessionService: AuthSessionService,
+  ) {}
 
   @Get("list")
   @ApiOperation({
@@ -68,6 +79,7 @@ export class UserController {
     summary: "A HTTP PATCH request to update user detail.",
   })
   @ApiBearerAuth()
+  @Recaptcha()
   async patchUserDetailAsync(
     @CurrentUser() currentUser: UserEntity,
     @Param() param: UserDetailRequestParamDto,
@@ -90,6 +102,60 @@ export class UserController {
     await this.userService.updateUserAsync(user.id, body);
 
     return this.userService.getUserDetail(await this.userService.findUserByIdAsync(user.id), currentUser);
+  }
+
+  @Delete("detail/:id")
+  @ApiOperation({
+    summary: "A HTTP DELETE request to delete user.",
+  })
+  async deleteUserDetailAsync(@CurrentUser() currentUser: UserEntity, @Param() param: UserDetailRequestParamDto) {
+    if (!currentUser) throw new AuthRequiredException();
+
+    const user = await this.userService.findUserByIdAsync(param.id);
+    if (!user) throw new NoSuchUserException();
+
+    if (!this.userService.checkIsAllowedManage(user, currentUser)) throw new PermissionDeniedException();
+
+    await this.userService.deleteUserAsync(user);
+    await this.authSessionService.revokeAllSessionsExceptAsync(param.id, null);
+  }
+
+  @Get("preference/:id")
+  @ApiOperation({
+    summary: "A HTTP PATCH request to update user preference.",
+  })
+  @ApiBearerAuth()
+  async getUserPreferenceAsync(
+    @CurrentUser() currentUser: UserEntity,
+    @Param() param: UserPreferenceRequestParamDto,
+  ): Promise<UserPreferenceResponseDto> {
+    if (!currentUser) throw new AuthRequiredException();
+    const user = await this.userService.findUserByIdAsync(param.id);
+    if (!user) throw new NoSuchUserException();
+
+    return await this.userService.getUserPreferenceAsync(user);
+  }
+
+  @Patch("preference/:id")
+  @ApiOperation({
+    summary: "A HTTP PATCH request to update user preference.",
+  })
+  @ApiBearerAuth()
+  @Recaptcha()
+  async patchUserPreferenceAsync(
+    @CurrentUser() currentUser: UserEntity,
+    @Param() param: UserPreferenceRequestParamDto,
+    @Body() body: PatchUserPreferenceRequestBodyDto,
+  ): Promise<UserPreferenceResponseDto> {
+    if (!currentUser) throw new AuthRequiredException();
+    const user = await this.userService.findUserByIdAsync(param.id);
+
+    if (!user) throw new NoSuchUserException();
+    if (!this.userService.checkIsAllowedEdit(user, currentUser)) throw new PermissionDeniedException();
+
+    await this.userService.updateUserPreferenceAsync(user.id, body);
+
+    return await this.userService.getUserPreferenceAsync(user);
   }
 
   @Get("search")

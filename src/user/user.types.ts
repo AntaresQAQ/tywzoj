@@ -1,11 +1,5 @@
 import { CE_UserLevel } from "@/common/user-level";
 
-export const enum CE_UserGender {
-  Male = "Male",
-  Female = "Female",
-  Other = "Other",
-}
-
 export interface IUserAtomicEntity {
   id: number;
   username: string;
@@ -19,7 +13,6 @@ export interface IUserBaseEntity extends IUserAtomicEntity {
 }
 
 export interface IUserEntity extends IUserBaseEntity {
-  gender?: CE_UserGender;
   acceptedProblemCount: number;
   submissionCount: number;
   rating: number;
