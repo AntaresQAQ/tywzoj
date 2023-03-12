@@ -14,6 +14,9 @@ export const enum CE_UserLevel {
 export const enum CE_Permissions {
   ManageUser = CE_UserLevel.Admin,
   ManageProblem = CE_UserLevel.Manager,
+  CreatePersonalProblem = CE_UserLevel.Paid,
+  AccessProblem = CE_UserLevel.General,
+  AccessGroup = CE_UserLevel.Internal,
   AccessHomework = CE_UserLevel.Internal,
   AccessSite = CE_UserLevel.General,
 }
