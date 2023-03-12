@@ -4,17 +4,23 @@ import { DataSource, In, Repository } from "typeorm";
 
 import { CE_Permissions, checkIsAllowed } from "@/common/user-level";
 import { escapeLike } from "@/database/database.utils";
-import { ProblemSampleEntity } from "@/problem/problem-sample.entity";
-import { IProblemSampleEntity } from "@/problem/problem-sample.types";
-import { IProblemTagEntity, IProblemTagTypeEntity } from "@/problem/problem-tag.types";
 import { UserEntity } from "@/user/user.entity";
 import { UserService } from "@/user/user.service";
 
 import { ProblemEntity } from "./problem.entity";
-import { E_ProblemScope, IProblemBaseEntityWithExtra, IProblemEntityWithExtra } from "./problem.types";
+import {
+  E_ProblemScope,
+  IProblemAtomicEntityWithExtra,
+  IProblemBaseEntityWithExtra,
+  IProblemEntityWithExtra,
+} from "./problem.types";
+import { ProblemSampleEntity } from "./problem-sample.entity";
+import { IProblemSampleEntity } from "./problem-sample.types";
 import { ProblemTagEntity } from "./problem-tag.entity";
+import { IProblemTagBaseEntityWithExtra, IProblemTagEntityWithExtra } from "./problem-tag.types";
 import { ProblemTagMapEntity } from "./problem-tag-map.entity";
 import { ProblemTagTypeEntity } from "./problem-tag-type.entity";
+import { IProblemTagTypeBaseEntityWithExtra, IProblemTagTypeEntityWithExtra } from "./problem-tag-type.types";
 
 @Injectable()
 export class ProblemService {
@@ -62,7 +68,8 @@ export class ProblemService {
       .createQueryBuilder("problem")
       .select("problem.id", "id")
       .where("level <= :level", { level: currentUser.level })
-      .andWhere("scope = :scope", { scope: E_ProblemScope.Global });
+      .andWhere("scope = :scope", { scope: E_ProblemScope.Global })
+      .andWhere("problem.displayId IS NOT NULL");
 
     if (!checkIsAllowed(currentUser.level, CE_Permissions.ManageProblem)) {
       queryBuilder.andWhere(qb => {
@@ -102,7 +109,7 @@ export class ProblemService {
     return [await this.findProblemsByExistingIdsAsync(result.map(row => row.id)), count];
   }
 
-  public async findProblemTagsByProblemIdAsync(problemId: number): Promise<ProblemTagEntity[]> {
+  public async findProblemTagListByProblemIdAsync(problemId: number): Promise<ProblemTagEntity[]> {
     const queryBuilder = this.problemTagRepository.createQueryBuilder("tag");
     const tagIdsQuery = queryBuilder
       .subQuery()
@@ -114,12 +121,20 @@ export class ProblemService {
     return await queryBuilder.getMany();
   }
 
-  public async findProblemTagListAsync() {
-    return await this.problemTagRepository.find({ order: { order: "ASC" } });
+  public async findProblemTagListByTypeIdAsync(typeId: number) {
+    return await this.problemTagRepository.find({ where: { typeId }, order: { order: "ASC" } });
   }
 
   public async findProblemTagTypeListAsync() {
     return await this.problemTagTypeRepository.find({ order: { order: "ASC" } });
+  }
+
+  public getProblemAtomicDetail(problem: ProblemEntity): IProblemAtomicEntityWithExtra {
+    return {
+      id: problem.id,
+      displayId: problem.displayId,
+      title: problem.title,
+    };
   }
 
   public async getProblemBaseDetailAsync(
@@ -127,9 +142,7 @@ export class ProblemService {
     queryTags: boolean,
   ): Promise<IProblemBaseEntityWithExtra> {
     const baseDetail: IProblemBaseEntityWithExtra = {
-      id: problem.id,
-      displayId: problem.displayId,
-      title: problem.title,
+      ...this.getProblemAtomicDetail(problem),
       subtitle: problem.subtitle,
       isPublic: problem.isPublic,
       scope: problem.scope,
@@ -138,18 +151,14 @@ export class ProblemService {
     };
 
     if (queryTags) {
-      const tags = await this.findProblemTagsByProblemIdAsync(problem.id);
-      baseDetail.tags = tags.map(tag => this.getProblemTagDetail(tag));
+      const tags = await this.findProblemTagListByProblemIdAsync(problem.id);
+      baseDetail.tags = await Promise.all(tags.map(tag => this.getProblemTagDetailAsync(tag)));
     }
 
     return baseDetail;
   }
 
-  public async getProblemDetailAsync(
-    problem: ProblemEntity,
-    queryTags: boolean,
-    currentUser: UserEntity,
-  ): Promise<IProblemEntityWithExtra> {
+  public async getProblemDetailAsync(problem: ProblemEntity, queryTags: boolean): Promise<IProblemEntityWithExtra> {
     return {
       ...(await this.getProblemBaseDetailAsync(problem, queryTags)),
       description: problem.description,
@@ -158,7 +167,7 @@ export class ProblemService {
       limitAndHint: problem.limitAndHint,
       type: problem.type,
       level: problem.level,
-      owner: await this.userService.getUserBaseDetail(await problem.owner, currentUser),
+      owner: await this.userService.getUserAtomicDetail(await problem.owner),
       samples: (await problem.samples).map(sample => this.getProblemSampleDetail(sample)),
     };
   }
@@ -172,7 +181,7 @@ export class ProblemService {
     };
   }
 
-  public getProblemTagDetail(tag: ProblemTagEntity): IProblemTagEntity {
+  public getProblemTagBaseDetail(tag: ProblemTagEntity): IProblemTagBaseEntityWithExtra {
     return {
       id: tag.id,
       name: tag.name,
@@ -181,7 +190,14 @@ export class ProblemService {
     };
   }
 
-  public getProblemTagTypeDetail(tagType: ProblemTagTypeEntity): IProblemTagTypeEntity {
+  public async getProblemTagDetailAsync(tag: ProblemTagEntity): Promise<IProblemTagEntityWithExtra> {
+    return {
+      ...this.getProblemTagBaseDetail(tag),
+      type: await tag.type,
+    };
+  }
+
+  public getProblemTagTypeBaseDetail(tagType: ProblemTagTypeEntity): IProblemTagTypeBaseEntityWithExtra {
     return {
       id: tagType.id,
       name: tagType.name,
@@ -190,31 +206,55 @@ export class ProblemService {
     };
   }
 
+  public async getProblemTagTypeDetailAsync(tagType: ProblemTagTypeEntity): Promise<IProblemTagTypeEntityWithExtra> {
+    return {
+      ...this.getProblemTagTypeBaseDetail(tagType),
+      tags: (await this.findProblemTagListByTypeIdAsync(tagType.id)).map(tag => this.getProblemTagBaseDetail(tag)),
+    };
+  }
+
+  public checkIsAllowedAccess(currentUser: UserEntity): boolean {
+    return checkIsAllowed(currentUser.level, CE_Permissions.AccessProblem);
+  }
+
   public checkIsAllowedView(problem: ProblemEntity, currentUser: UserEntity): boolean {
+    if (!this.checkIsAllowedAccess(currentUser)) return false;
     if (this.checkIsAllowedManage(problem, currentUser)) return true;
 
-    if (problem.scope === E_ProblemScope.Global) {
-      return currentUser.level >= problem.level || currentUser.id === problem.ownerId;
-    } else if (problem.scope === E_ProblemScope.Group) {
-      // TODO: check current user is in group or problem owner
-      return currentUser.id === problem.ownerId;
+    if (problem.scope === E_ProblemScope.Group) {
+      // should check this at group service
+      return checkIsAllowed(currentUser.level, CE_Permissions.AccessGroup);
     } else if (problem.scope === E_ProblemScope.Personal) {
       return currentUser.id === problem.ownerId;
-    } else {
-      return false;
+    } /* E_ProblemScope.Global */ else {
+      return currentUser.level >= problem.level && problem.isPublic;
     }
   }
 
   public checkIsAllowedManage(problem: ProblemEntity, currentUser: UserEntity): boolean {
+    if (!this.checkIsAllowedAccess(currentUser)) return false;
     if (checkIsAllowed(currentUser.level, CE_Permissions.ManageProblem)) return true;
 
     if (problem.scope === E_ProblemScope.Group) {
-      // TODO: check current user is group manager or problem owner
-      return problem.ownerId === currentUser.id;
+      // should check this at group service
+      return checkIsAllowed(currentUser.level, CE_Permissions.AccessGroup);
     } else if (problem.scope === E_ProblemScope.Personal) {
       return problem.ownerId === currentUser.id;
-    } else {
+    } /* E_ProblemScope.Global */ else {
       return false;
+    }
+  }
+
+  public checkIsAllowedCreate(problemScope: E_ProblemScope, currentUser: UserEntity): boolean {
+    if (!this.checkIsAllowedAccess(currentUser)) return false;
+
+    if (problemScope === E_ProblemScope.Group) {
+      // should check this at group service
+      return checkIsAllowed(currentUser.level, CE_Permissions.AccessGroup);
+    } else if (problemScope === E_ProblemScope.Personal) {
+      return checkIsAllowed(currentUser.level, CE_Permissions.CreatePersonalProblem);
+    } /* E_ProblemScope.Global */ else {
+      return checkIsAllowed(currentUser.level, CE_Permissions.ManageProblem);
     }
   }
 }

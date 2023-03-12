@@ -11,8 +11,8 @@ export class ProblemEntity implements IProblemEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: "integer", nullable: false })
-  @Index({ unique: true })
+  @Column({ type: "integer", nullable: true, default: null })
+  @Index({ unique: true, nullFiltered: true })
   displayId: number;
 
   @Column({ type: "varchar", length: 80, nullable: false })

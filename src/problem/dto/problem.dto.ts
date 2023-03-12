@@ -1,17 +1,19 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
+import { ProblemTagDetailDto } from "@/problem/dto/problem-tag.dto";
 import {
   CE_ProblemLevel,
   E_ProblemScope,
   E_ProblemType,
-  IProblemBaseEntity,
+  IProblemAtomicEntityWithExtra,
+  IProblemBaseEntityWithExtra,
   IProblemEntityWithExtra,
 } from "@/problem/problem.types";
-import { UserBaseDetailDto } from "@/user/dto/user.dto";
+import { UserAtomicDetailDto } from "@/user/dto/user.dto";
 
 import { ProblemSampleBaseDetailDto } from "./problem-sample.dto";
 
-export class ProblemBaseDetailDto implements IProblemBaseEntity {
+export abstract class ProblemAtomicDetailDto implements IProblemAtomicEntityWithExtra {
   @ApiProperty()
   id: number;
 
@@ -20,7 +22,9 @@ export class ProblemBaseDetailDto implements IProblemBaseEntity {
 
   @ApiProperty()
   title: string;
+}
 
+export abstract class ProblemBaseDetailDto extends ProblemAtomicDetailDto implements IProblemBaseEntityWithExtra {
   @ApiProperty()
   subtitle: string;
 
@@ -35,9 +39,12 @@ export class ProblemBaseDetailDto implements IProblemBaseEntity {
 
   @ApiProperty()
   acceptedSubmissionCount: number;
+
+  @ApiPropertyOptional()
+  tags?: ProblemTagDetailDto[];
 }
 
-export class ProblemDetailDto extends ProblemBaseDetailDto implements IProblemEntityWithExtra {
+export abstract class ProblemDetailDto extends ProblemBaseDetailDto implements IProblemEntityWithExtra {
   @ApiProperty()
   description: string;
 
@@ -56,9 +63,9 @@ export class ProblemDetailDto extends ProblemBaseDetailDto implements IProblemEn
   @ApiProperty()
   level: CE_ProblemLevel;
 
-  @ApiPropertyOptional()
-  owner?: UserBaseDetailDto;
+  @ApiProperty()
+  owner: UserAtomicDetailDto;
 
-  @ApiPropertyOptional()
-  samples?: ProblemSampleBaseDetailDto[];
+  @ApiProperty()
+  samples: ProblemSampleBaseDetailDto[];
 }

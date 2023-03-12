@@ -1,6 +1,6 @@
 import { Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
 
-import { IProblemTagTypeEntity } from "./problem-tag.types";
+import { IProblemTagTypeEntity } from "./problem-tag-type.types";
 
 @Entity("problem_tag_type")
 export class ProblemTagTypeEntity implements IProblemTagTypeEntity {

@@ -5,7 +5,7 @@ import { IsBoolean, IsIn, IsInt, IsOptional, IsString, Length, Min } from "class
 import { arrayTransformerFactory, booleanTransformerFactory } from "@/common/transformers";
 import { ProblemBaseDetailDto } from "@/problem/dto/problem.dto";
 
-export class GetProblemListRequestQueryDto {
+export abstract class GetProblemListRequestQueryDto {
   @ApiProperty({ enum: ["id", "title", "submissionCount", "acceptedSubmissionCount"] })
   @IsIn(["id", "title", "submissionCount", "acceptedSubmissionCount"])
   readonly sortBy: "id" | "title" | "submissionCount" | "acceptedSubmissionCount";
@@ -50,7 +50,7 @@ export class GetProblemListRequestQueryDto {
   readonly queryTags?: boolean;
 }
 
-export class GetProblemListResponseDto {
+export abstract class GetProblemListResponseDto {
   @ApiProperty()
   problems: ProblemBaseDetailDto[];
 

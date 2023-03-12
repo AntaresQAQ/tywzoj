@@ -3,17 +3,24 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 
 import { AuthRequiredException, PermissionDeniedException, TakeTooManyException } from "@/common/exception";
 import { CurrentUser } from "@/common/user.decorator";
-import { CE_Permissions, checkIsAllowed } from "@/common/user-level";
 import { ConfigService } from "@/config/config.service";
+import { ProblemTagDetailDto, ProblemTagTypeDetailDto } from "@/problem/dto/problem-tag.dto";
 import { UserEntity } from "@/user/user.entity";
 
 import {
+  GetProblemDetailByIdRequestParamDto,
+  GetProblemDetailByIdRequestQueryDto,
   GetProblemDetailRequestParamDto,
   GetProblemDetailRequestQueryDto,
   GetProblemDetailResponseDto,
 } from "./dto/problem.detail.dto";
 import { GetProblemListRequestQueryDto, GetProblemListResponseDto } from "./dto/problem.list.dto";
-import { GetProblemTagListResponseDto } from "./dto/problem-tag.list.dto";
+import {
+  GetProblemTagListRequestQueryDto,
+  GetProblemTagListResponseDto,
+  GetProblemTagTypeListRequestQueryDto,
+  GetProblemTagTypeListResponseDto,
+} from "./dto/problem-tag.list.dto";
 import { NoSuchProblemException } from "./problem.exception";
 import { ProblemService } from "./problem.service";
 
@@ -32,7 +39,7 @@ export class ProblemController {
     @Query() query: GetProblemListRequestQueryDto,
   ): Promise<GetProblemListResponseDto> {
     if (!currentUser) throw new AuthRequiredException();
-    if (!checkIsAllowed(currentUser.level, CE_Permissions.AccessSite)) throw new PermissionDeniedException();
+    if (!this.problemService.checkIsAllowedAccess(currentUser)) throw new PermissionDeniedException();
     if (query.takeCount > this.configService.config.queryLimit.problem) throw new TakeTooManyException();
 
     const tagIds = query.tagIds && query.tagIds.filter(x => Number.isSafeInteger(x));
@@ -83,33 +90,84 @@ export class ProblemController {
 
     const { queryTags = false } = query;
 
-    const problemDetail: GetProblemDetailResponseDto = {
-      problemDetail: await this.problemService.getProblemDetailAsync(problem, queryTags, currentUser),
-    };
+    return await this.problemService.getProblemDetailAsync(problem, queryTags);
+  }
 
-    if (queryTags) {
-      const tagTypes = await this.problemService.findProblemTagTypeListAsync();
-      problemDetail.tagTypeDetails = tagTypes.map(tagType => this.problemService.getProblemTagTypeDetail(tagType));
-    }
+  @Get("detailById/:id")
+  @ApiOperation({
+    summary: "A HTTP GET request to get problem detail.",
+  })
+  @ApiBearerAuth()
+  async getProblemDetailByIdAsync(
+    @CurrentUser() currentUser: UserEntity,
+    @Param() param: GetProblemDetailByIdRequestParamDto,
+    @Query() query: GetProblemDetailByIdRequestQueryDto,
+  ): Promise<GetProblemDetailResponseDto> {
+    if (!currentUser) throw new AuthRequiredException();
 
-    return problemDetail;
+    const problem = await this.problemService.findProblemByDisplayIdAsync(param.id);
+    if (!problem) throw new NoSuchProblemException();
+
+    if (!this.problemService.checkIsAllowedView(problem, currentUser)) throw new PermissionDeniedException();
+
+    const { queryTags = false } = query;
+
+    return await this.problemService.getProblemDetailAsync(problem, queryTags);
   }
 
   @Get("tag/list")
   @ApiOperation({
+    summary: "A HTTP GET request to get problem tags.",
+  })
+  @ApiBearerAuth()
+  async getProblemDetailTagListByIdAsync(
+    @CurrentUser() currentUser: UserEntity,
+    @Query() query: GetProblemTagListRequestQueryDto,
+  ): Promise<GetProblemTagListResponseDto> {
+    if (!currentUser) throw new AuthRequiredException();
+
+    const { problemId, queryType = false } = query;
+    const problem = await this.problemService.findProblemByIdAsync(problemId);
+    if (!problem) throw new NoSuchProblemException();
+    if (!this.problemService.checkIsAllowedView(problem, currentUser)) throw new PermissionDeniedException();
+
+    const tagEntities = await this.problemService.findProblemTagListByProblemIdAsync(problem.id);
+    console.log(tagEntities);
+
+    let tags: ProblemTagDetailDto[];
+    if (queryType) {
+      tags = await Promise.all(tagEntities.map(tag => this.problemService.getProblemTagDetailAsync(tag)));
+    } else {
+      tags = tagEntities.map(tag => this.problemService.getProblemTagBaseDetail(tag));
+    }
+
+    return { tags };
+  }
+
+  @Get("tagType/list")
+  @ApiOperation({
     summary: "A HTTP GET request to get problem tag list.",
   })
   @ApiBearerAuth()
-  async getProblemTagListAsync(@CurrentUser() currentUser: UserEntity): Promise<GetProblemTagListResponseDto> {
+  async getProblemTagListAsync(
+    @CurrentUser() currentUser: UserEntity,
+    @Query() query: GetProblemTagTypeListRequestQueryDto,
+  ): Promise<GetProblemTagTypeListResponseDto> {
     if (!currentUser) throw new AuthRequiredException();
-    if (!checkIsAllowed(currentUser.level, CE_Permissions.AccessSite)) throw new PermissionDeniedException();
+    if (!this.problemService.checkIsAllowedAccess(currentUser)) throw new PermissionDeniedException();
 
-    const problemTags = await this.problemService.findProblemTagListAsync();
-    const problemTagTypes = await this.problemService.findProblemTagTypeListAsync();
+    const { queryTags = false } = query;
+    const tagTypeEntities = await this.problemService.findProblemTagTypeListAsync();
 
-    return {
-      tagsDetails: problemTags.map(tag => this.problemService.getProblemTagDetail(tag)),
-      tagTypeDetails: problemTagTypes.map(tagType => this.problemService.getProblemTagTypeDetail(tagType)),
-    };
+    let tagTypes: ProblemTagTypeDetailDto[];
+    if (queryTags) {
+      tagTypes = await Promise.all(
+        tagTypeEntities.map(tagType => this.problemService.getProblemTagTypeDetailAsync(tagType)),
+      );
+    } else {
+      tagTypes = tagTypeEntities.map(tagType => this.problemService.getProblemTagTypeBaseDetail(tagType));
+    }
+
+    return { tagTypes };
   }
 }

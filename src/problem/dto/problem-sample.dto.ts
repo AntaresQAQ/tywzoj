@@ -2,7 +2,7 @@ import { ApiProperty } from "@nestjs/swagger";
 
 import { IProblemSampleEntity } from "@/problem/problem-sample.types";
 
-export class ProblemSampleBaseDetailDto implements IProblemSampleEntity {
+export abstract class ProblemSampleBaseDetailDto implements IProblemSampleEntity {
   @ApiProperty()
   id: number;
 

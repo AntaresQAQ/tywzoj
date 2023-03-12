@@ -4,9 +4,8 @@ import { IsBoolean, IsInt, IsOptional, Min } from "class-validator";
 
 import { booleanTransformerFactory } from "@/common/transformers";
 import { ProblemDetailDto } from "@/problem/dto/problem.dto";
-import { ProblemTagTypeDetailDto } from "@/problem/dto/problem-tag.dto";
 
-export class GetProblemDetailRequestParamDto {
+export abstract class GetProblemDetailRequestParamDto {
   @ApiProperty()
   @IsInt()
   @Min(0)
@@ -14,7 +13,15 @@ export class GetProblemDetailRequestParamDto {
   displayId: number;
 }
 
-export class GetProblemDetailRequestQueryDto {
+export abstract class GetProblemDetailByIdRequestParamDto {
+  @ApiProperty()
+  @IsInt()
+  @Min(0)
+  @Type(() => Number)
+  id: number;
+}
+
+export abstract class GetProblemDetailRequestQueryDto {
   @ApiPropertyOptional()
   @IsBoolean()
   @IsOptional()
@@ -22,10 +29,5 @@ export class GetProblemDetailRequestQueryDto {
   queryTags?: boolean;
 }
 
-export class GetProblemDetailResponseDto {
-  @ApiProperty()
-  problemDetail: ProblemDetailDto;
-
-  @ApiPropertyOptional()
-  tagTypeDetails?: ProblemTagTypeDetailDto[];
-}
+export abstract class GetProblemDetailByIdRequestQueryDto extends GetProblemDetailRequestQueryDto {}
+export abstract class GetProblemDetailResponseDto extends ProblemDetailDto {}
