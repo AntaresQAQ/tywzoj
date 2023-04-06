@@ -3,7 +3,8 @@ import { Transform, Type } from "class-transformer";
 import { IsBoolean, IsIn, IsInt, IsOptional, IsString, Length, Min } from "class-validator";
 
 import { arrayTransformerFactory, booleanTransformerFactory } from "@/common/transformers";
-import { ProblemBaseDetailDto } from "@/problem/dto/problem.dto";
+
+import { ProblemBaseDetailDto } from "./problem.dto";
 
 export abstract class GetProblemListRequestQueryDto {
   @ApiProperty({ enum: ["id", "title", "submissionCount", "acceptedSubmissionCount"] })

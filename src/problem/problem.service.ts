@@ -14,6 +14,8 @@ import {
   IProblemBaseEntityWithExtra,
   IProblemEntityWithExtra,
 } from "./problem.types";
+import { ProblemJudgeInfoEntity } from "./problem-judge-info.entity";
+import { IProblemJudgeInfoEntity } from "./problem-judge-info.types";
 import { ProblemSampleEntity } from "./problem-sample.entity";
 import { IProblemSampleEntity } from "./problem-sample.types";
 import { ProblemTagEntity } from "./problem-tag.entity";
@@ -145,6 +147,7 @@ export class ProblemService {
       ...this.getProblemAtomicDetail(problem),
       subtitle: problem.subtitle,
       isPublic: problem.isPublic,
+      publicTime: problem.publicTime,
       scope: problem.scope,
       submissionCount: problem.submissionCount,
       acceptedSubmissionCount: problem.acceptedSubmissionCount,
@@ -159,6 +162,8 @@ export class ProblemService {
   }
 
   public async getProblemDetailAsync(problem: ProblemEntity, queryTags: boolean): Promise<IProblemEntityWithExtra> {
+    const judgeInfo = await problem.judgeInfo;
+
     return {
       ...(await this.getProblemBaseDetailAsync(problem, queryTags)),
       description: problem.description,
@@ -169,6 +174,7 @@ export class ProblemService {
       level: problem.level,
       owner: await this.userService.getUserAtomicDetail(await problem.owner),
       samples: (await problem.samples).map(sample => this.getProblemSampleDetail(sample)),
+      judgeInfo: judgeInfo ? this.getProblemJudgeInfoDetail(judgeInfo) : null,
     };
   }
 
@@ -178,6 +184,17 @@ export class ProblemService {
       input: problemSample.input,
       output: problemSample.output,
       explanation: problemSample.explanation,
+    };
+  }
+
+  public getProblemJudgeInfoDetail(problemJudgeInfo: ProblemJudgeInfoEntity): IProblemJudgeInfoEntity {
+    return {
+      problemId: problemJudgeInfo.problemId,
+      timeLimit: problemJudgeInfo.timeLimit,
+      memoryLimit: problemJudgeInfo.memoryLimit,
+      fileIO: problemJudgeInfo.fileIO,
+      inputFile: problemJudgeInfo.inputFile,
+      outputFile: problemJudgeInfo.outputFile,
     };
   }
 

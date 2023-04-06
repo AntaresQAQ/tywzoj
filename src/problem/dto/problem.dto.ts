@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
-import { ProblemTagDetailDto } from "@/problem/dto/problem-tag.dto";
+import { UserAtomicDetailDto } from "@/user/dto/user.dto";
+
 import {
   CE_ProblemLevel,
   E_ProblemScope,
@@ -8,10 +9,10 @@ import {
   IProblemAtomicEntityWithExtra,
   IProblemBaseEntityWithExtra,
   IProblemEntityWithExtra,
-} from "@/problem/problem.types";
-import { UserAtomicDetailDto } from "@/user/dto/user.dto";
-
+} from "../problem.types";
+import { ProblemJudgeInfoDto } from "./problem-judge-info.dto";
 import { ProblemSampleBaseDetailDto } from "./problem-sample.dto";
+import { ProblemTagDetailDto } from "./problem-tag.dto";
 
 export abstract class ProblemAtomicDetailDto implements IProblemAtomicEntityWithExtra {
   @ApiProperty()
@@ -30,6 +31,9 @@ export abstract class ProblemBaseDetailDto extends ProblemAtomicDetailDto implem
 
   @ApiProperty()
   isPublic: boolean;
+
+  @ApiProperty()
+  publicTime: Date;
 
   @ApiProperty({ enum: E_ProblemScope })
   scope: E_ProblemScope;
@@ -68,4 +72,7 @@ export abstract class ProblemDetailDto extends ProblemBaseDetailDto implements I
 
   @ApiProperty()
   samples: ProblemSampleBaseDetailDto[];
+
+  @ApiProperty()
+  judgeInfo: ProblemJudgeInfoDto;
 }

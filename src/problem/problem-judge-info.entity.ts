@@ -1,9 +1,10 @@
 import { Column, Entity, JoinColumn, OneToOne, PrimaryColumn } from "typeorm";
 
-import { ProblemEntity } from "@/problem/problem.entity";
+import { ProblemEntity } from "./problem.entity";
+import { IProblemJudgeInfoEntity } from "./problem-judge-info.types";
 
 @Entity("problem_judge_info")
-export class ProblemJudgeInfoEntity {
+export class ProblemJudgeInfoEntity implements IProblemJudgeInfoEntity {
   @OneToOne(() => ProblemEntity, problem => problem.judgeInfo, {
     onDelete: "CASCADE",
   })

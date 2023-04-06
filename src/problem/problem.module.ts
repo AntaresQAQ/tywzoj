@@ -6,6 +6,7 @@ import { UserModule } from "@/user/user.module";
 import { ProblemController } from "./problem.controller";
 import { ProblemEntity } from "./problem.entity";
 import { ProblemService } from "./problem.service";
+import { ProblemJudgeInfoEntity } from "./problem-judge-info.entity";
 import { ProblemSampleEntity } from "./problem-sample.entity";
 import { ProblemSetEntity } from "./problem-set.entity";
 import { ProblemSetMapEntity } from "./problem-set-map.entity";
@@ -17,6 +18,7 @@ import { ProblemTagTypeEntity } from "./problem-tag-type.entity";
   imports: [
     TypeOrmModule.forFeature([ProblemEntity]),
     TypeOrmModule.forFeature([ProblemSampleEntity]),
+    TypeOrmModule.forFeature([ProblemJudgeInfoEntity]),
     TypeOrmModule.forFeature([ProblemTagEntity]),
     TypeOrmModule.forFeature([ProblemTagMapEntity]),
     TypeOrmModule.forFeature([ProblemTagTypeEntity]),

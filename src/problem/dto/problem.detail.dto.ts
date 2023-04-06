@@ -3,7 +3,8 @@ import { Transform, Type } from "class-transformer";
 import { IsBoolean, IsInt, IsOptional, Min } from "class-validator";
 
 import { booleanTransformerFactory } from "@/common/transformers";
-import { ProblemDetailDto } from "@/problem/dto/problem.dto";
+
+import { ProblemDetailDto } from "./problem.dto";
 
 export abstract class GetProblemDetailRequestParamDto {
   @ApiProperty()
