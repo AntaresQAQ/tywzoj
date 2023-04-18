@@ -7,6 +7,8 @@ import { UserEntity } from "@/user/user.entity";
 import { ProblemSampleEntity } from "./problem-sample.entity";
 
 @Entity("problem")
+@Index(["displayId", "level", "scope"])
+@Index(["displayId", "level", "scope", "isPublic"])
 export class ProblemEntity implements IProblemEntity {
   @PrimaryGeneratedColumn()
   id: number;
@@ -55,6 +57,7 @@ export class ProblemEntity implements IProblemEntity {
   isPublic: boolean;
 
   @Column({ type: "enum", enum: E_ProblemScope, default: E_ProblemScope.Personal })
+  @Index({ unique: false })
   scope: E_ProblemScope;
 
   @Column({ type: "datetime", nullable: true })

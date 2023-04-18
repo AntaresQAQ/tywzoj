@@ -75,7 +75,7 @@ export class ProblemService {
 
     if (!checkIsAllowed(currentUser.level, CE_Permissions.ManageProblem)) {
       queryBuilder.andWhere(qb => {
-        qb.where("isPublic = 1").orWhere("ownerId = :ownerId", { ownerId: currentUser.id });
+        qb.where("isPublic = 1");
       });
     }
 

@@ -18,7 +18,7 @@ export abstract class ProblemAtomicDetailDto implements IProblemAtomicEntityWith
   @ApiProperty()
   id: number;
 
-  @ApiProperty()
+  @ApiProperty({ nullable: true })
   displayId: number;
 
   @ApiProperty()
@@ -26,7 +26,7 @@ export abstract class ProblemAtomicDetailDto implements IProblemAtomicEntityWith
 }
 
 export abstract class ProblemBaseDetailDto extends ProblemAtomicDetailDto implements IProblemBaseEntityWithExtra {
-  @ApiProperty()
+  @ApiPropertyOptional({ nullable: true })
   subtitle: string;
 
   @ApiProperty()
@@ -49,28 +49,28 @@ export abstract class ProblemBaseDetailDto extends ProblemAtomicDetailDto implem
 }
 
 export abstract class ProblemDetailDto extends ProblemBaseDetailDto implements IProblemEntityWithExtra {
-  @ApiProperty()
+  @ApiProperty({ nullable: true })
   description: string;
 
-  @ApiProperty()
+  @ApiProperty({ nullable: true })
   inputFormat: string;
 
-  @ApiProperty()
+  @ApiProperty({ nullable: true })
   outputFormat: string;
 
-  @ApiProperty()
+  @ApiProperty({ nullable: true })
   limitAndHint: string;
 
-  @ApiProperty()
+  @ApiProperty({ enum: E_ProblemType })
   type: E_ProblemType;
 
   @ApiProperty()
   level: CE_ProblemLevel;
 
-  @ApiProperty()
+  @ApiProperty({ nullable: true })
   owner: UserAtomicDetailDto;
 
-  @ApiProperty()
+  @ApiProperty({ isArray: true })
   samples: ProblemSampleBaseDetailDto[];
 
   @ApiProperty()
