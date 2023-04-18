@@ -9,6 +9,7 @@ import {
   IsIP,
   IsOptional,
   IsString,
+  IsUrl,
   Min,
   ValidateNested,
 } from "class-validator";
@@ -63,6 +64,34 @@ class MailServiceConfig {
   readonly transport: unknown;
 }
 
+class MinioServiceConfig {
+  @IsString()
+  readonly endPoint: string;
+
+  @IsPortNumber()
+  readonly port: number;
+
+  @IsBoolean()
+  readonly useSSL: boolean;
+
+  @IsString()
+  readonly accessKey: string;
+
+  @IsString()
+  readonly secretKey: string;
+
+  @IsString()
+  readonly bucket: string;
+
+  @IsUrl()
+  @IsOptional()
+  readonly userEndPointUrl: string;
+
+  @IsUrl()
+  @IsOptional()
+  readonly judgeEndPointUrl: string;
+}
+
 class ServiceConfig {
   @ValidateNested()
   @Type(() => DatabaseServiceConfig)
@@ -74,6 +103,10 @@ class ServiceConfig {
   @ValidateNested()
   @Type(() => MailServiceConfig)
   readonly mail: MailServiceConfig;
+
+  @ValidateNested()
+  @Type(() => MinioServiceConfig)
+  readonly minio: MinioServiceConfig;
 }
 
 // END ServiceConfig
@@ -115,7 +148,7 @@ class RateLimitSecurityConfig {
   readonly durationSeconds: number;
 
   @IsArray()
-  @IsCIDR({ each: true })
+  @IsCIDR(undefined, { each: true })
   readonly whitelist: string[];
 }
 

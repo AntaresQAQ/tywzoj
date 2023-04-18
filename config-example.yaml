@@ -15,6 +15,15 @@ service:
   mail:
     address: tywzoj@mail.tywzoj.top
     transport: smtp://username:password@smtp.tywzoj.top:25
+  minio:
+    endPoint: minio.tywzoj.top
+    port: 9000
+    useSSL: true
+    accessKey: accesskey
+    secretKey: secretkey
+    bucket: tywzoj
+    userEndPointUrl: # example: https://user.minio.tywzoj.top
+    judgeEndPointUrl:
 security:
   crossOrigin:
     enabled: true
