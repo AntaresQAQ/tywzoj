@@ -27,4 +27,8 @@ export const enum CE_ErrorCode {
 
   // Problem (52xx)
   Problem_NoSuchProblem = 5200,
+
+  // File (53xx)
+  File_DuplicateUUID = 5300,
+  File_FileNotUploaded = 5301,
 }
