@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import process from "process";
 import util from "util";
 
@@ -31,4 +32,8 @@ export function encodeRFC5987ValueChars(str: string) {
       // so we can allow for a little better readability over the wire: |`^
       .replace(/%(7C|60|5E)/g, (str, hex) => String.fromCharCode(parseInt(hex, 16)))
   );
+}
+
+export function md5(str: string) {
+  return crypto.createHash("md5").update(str).digest("hex");
 }

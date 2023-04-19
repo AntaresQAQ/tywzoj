@@ -28,6 +28,9 @@ export const enum CE_ErrorCode {
   // Problem (52xx)
   Problem_NoSuchProblem = 5200,
   Problem_InvalidFileUploadToken = 5201,
+  Problem_TooManyFileUploadRequest = 5203,
+  Problem_TooLargeUploadFile = 5204,
+  Problem_FileLimitExceeded = 5205,
 
   // File (53xx)
   File_DuplicateUUID = 5300,

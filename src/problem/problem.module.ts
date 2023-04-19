@@ -2,6 +2,7 @@ import { forwardRef, Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 
 import { FileModule } from "@/file/file.module";
+import { RedisModule } from "@/redis/redis.module";
 import { UserModule } from "@/user/user.module";
 
 import { ProblemController } from "./problem.controller";
@@ -31,6 +32,7 @@ import { ProblemTagTypeEntity } from "./problem-tag-type.entity";
     TypeOrmModule.forFeature([ProblemSetMapEntity]),
     forwardRef(() => UserModule),
     forwardRef(() => FileModule),
+    forwardRef(() => RedisModule),
   ],
   providers: [ProblemService, ProblemTagService, ProblemFileService],
   exports: [ProblemService, ProblemTagService, ProblemFileService],
