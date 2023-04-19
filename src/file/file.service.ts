@@ -1,15 +1,16 @@
 import { Injectable, OnModuleInit } from "@nestjs/common";
-import { InjectDataSource } from "@nestjs/typeorm";
+import { InjectDataSource, InjectRepository } from "@nestjs/typeorm";
 import { randomUUID } from "crypto";
 import { Client as MinioClient } from "minio";
 import { Readable } from "stream";
-import { DataSource, EntityManager } from "typeorm";
+import { DataSource, EntityManager, In, Repository } from "typeorm";
 
 import { encodeRFC5987ValueChars, isEmptyValues, sleepAsync } from "@/common/utils";
 import { ConfigService } from "@/config/config.service";
 import { FileEntity } from "@/file/file.entity";
 import { DuplicateUUIDException, FileNotUploadedException } from "@/file/file.exception";
-import { IFileUploadRequest } from "@/file/file.types";
+import { IFileEntity, IFileUploadRequest } from "@/file/file.types";
+import { logger } from "@/loggger";
 
 const FILE_UPLOAD_EXPIRE_TIME = 10 * 60 * 1000; // 10 minutes (ms)
 const FILE_DOWNLOAD_EXPIRE_TIME = 2 * 60 * 60; // 2 hours (s)
@@ -24,6 +25,8 @@ export class FileService implements OnModuleInit {
   public constructor(
     @InjectDataSource()
     private readonly dataSource: DataSource,
+    @InjectRepository(FileEntity)
+    private readonly fileRepository: Repository<FileEntity>,
     private readonly configService: ConfigService,
   ) {
     const config = configService.config.service.minio;
@@ -75,6 +78,18 @@ export class FileService implements OnModuleInit {
     };
   }
 
+  public async findFileByUUIDAsync(uuid: string) {
+    return await this.fileRepository.findOneBy({ uuid });
+  }
+
+  public getFileDetail(file: FileEntity): IFileEntity {
+    return {
+      uuid: file.uuid,
+      size: file.size,
+      uploadTime: file.uploadTime,
+    };
+  }
+
   public async fileExistsAsync(uuid: string): Promise<boolean> {
     try {
       await this.minioClient.statObject(this.bucket, uuid);
@@ -106,6 +121,29 @@ export class FileService implements OnModuleInit {
     }
   }
 
+  /**
+   * @return A function to run after transaction, to delete the file(s) actually.
+   */
+  async deleteFileAsync(uuid: string | string[], entityManager: EntityManager): Promise<() => void> {
+    if (typeof uuid === "string") {
+      await entityManager.delete(FileEntity, { uuid });
+      return () =>
+        this.minioClient.removeObject(this.bucket, uuid).catch(e => {
+          logger.error(`Failed to delete file ${uuid}: ${e}`);
+        });
+    }
+    if (uuid.length > 0) {
+      await entityManager.delete(FileEntity, { uuid: In(uuid) });
+      return () =>
+        this.minioClient.removeObjects(this.bucket, uuid).catch(e => {
+          logger.error(`Failed to delete file [${uuid}]: ${e}`);
+        });
+    }
+    return () => {
+      /* do nothing */
+    };
+  }
+
   public async signUserUploadRequestAsync(minSize?: number, maxSize?: number): Promise<IFileUploadRequest> {
     const uuid = randomUUID();
     const policy = this.minioClient.newPostPolicy();
@@ -124,11 +162,8 @@ export class FileService implements OnModuleInit {
     };
   }
 
-  public async reportUserUploadRequestCompletedAsync(
-    uuid: string,
-    transactionalEntityManager: EntityManager,
-  ): Promise<FileEntity> {
-    if ((await transactionalEntityManager.countBy(FileEntity, { uuid })) !== 0) {
+  public async reportUserUploadRequestCompletedAsync(uuid: string, entityManager: EntityManager): Promise<FileEntity> {
+    if ((await entityManager.countBy(FileEntity, { uuid })) !== 0) {
       throw new DuplicateUUIDException();
     }
     if (!(await this.fileExistsAsync(uuid))) {
@@ -142,7 +177,7 @@ export class FileService implements OnModuleInit {
     file.size = fileState.size;
     file.uploadTime = fileState.lastModified;
 
-    await transactionalEntityManager.save(FileEntity, file);
+    await entityManager.save(FileEntity, file);
 
     return file;
   }
