@@ -207,7 +207,12 @@ export class ProblemController {
     }
 
     const token = this.problemFileService.encodeProblemFileUploadToken({ problemId, filename, size, type });
-    const uploadRequest = await this.problemFileService.signProblemFileUploadRequestAsync(size);
+    const uploadRequest = await this.problemFileService.signProblemFileUploadRequestAsync(
+      problemId,
+      type,
+      filename,
+      size,
+    );
 
     return { uploadRequest, token };
   }
