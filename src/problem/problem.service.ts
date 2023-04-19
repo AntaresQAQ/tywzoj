@@ -4,6 +4,7 @@ import { DataSource, In, Repository } from "typeorm";
 
 import { CE_Permissions, checkIsAllowed } from "@/common/user-level";
 import { escapeLike } from "@/database/database.utils";
+import { ProblemTagService } from "@/problem/problem-tag.service";
 import { UserEntity } from "@/user/user.entity";
 import { UserService } from "@/user/user.service";
 
@@ -18,11 +19,7 @@ import { ProblemJudgeInfoEntity } from "./problem-judge-info.entity";
 import { IProblemJudgeInfoEntity } from "./problem-judge-info.types";
 import { ProblemSampleEntity } from "./problem-sample.entity";
 import { IProblemSampleEntity } from "./problem-sample.types";
-import { ProblemTagEntity } from "./problem-tag.entity";
-import { IProblemTagBaseEntityWithExtra, IProblemTagEntityWithExtra } from "./problem-tag.types";
 import { ProblemTagMapEntity } from "./problem-tag-map.entity";
-import { ProblemTagTypeEntity } from "./problem-tag-type.entity";
-import { IProblemTagTypeBaseEntityWithExtra, IProblemTagTypeEntityWithExtra } from "./problem-tag-type.types";
 
 @Injectable()
 export class ProblemService {
@@ -31,14 +28,9 @@ export class ProblemService {
     private readonly dataSource: DataSource,
     @InjectRepository(ProblemEntity)
     private readonly problemRepository: Repository<ProblemEntity>,
-    @InjectRepository(ProblemTagEntity)
-    private readonly problemTagRepository: Repository<ProblemTagEntity>,
-    @InjectRepository(ProblemTagMapEntity)
-    private readonly problemTagMapRepository: Repository<ProblemTagMapEntity>,
-    @InjectRepository(ProblemTagTypeEntity)
-    private readonly problemTagTypeRepository: Repository<ProblemTagTypeEntity>,
     @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
+    private readonly problemTagService: ProblemTagService,
   ) {}
 
   public async findProblemByIdAsync(id: number): Promise<ProblemEntity> {
@@ -111,26 +103,6 @@ export class ProblemService {
     return [await this.findProblemsByExistingIdsAsync(result.map(row => row.id)), count];
   }
 
-  public async findProblemTagListByProblemIdAsync(problemId: number): Promise<ProblemTagEntity[]> {
-    const queryBuilder = this.problemTagRepository.createQueryBuilder("tag");
-    const tagIdsQuery = queryBuilder
-      .subQuery()
-      .select("tagMap.problemTagId")
-      .from(ProblemTagMapEntity, "tagMap")
-      .where("tagMap.problemId = :problemId ", { problemId })
-      .getQuery();
-    queryBuilder.where(`id IN ${tagIdsQuery}`).orderBy("`order`", "ASC");
-    return await queryBuilder.getMany();
-  }
-
-  public async findProblemTagListByTypeIdAsync(typeId: number) {
-    return await this.problemTagRepository.find({ where: { typeId }, order: { order: "ASC" } });
-  }
-
-  public async findProblemTagTypeListAsync() {
-    return await this.problemTagTypeRepository.find({ order: { order: "ASC" } });
-  }
-
   public getProblemAtomicDetail(problem: ProblemEntity): IProblemAtomicEntityWithExtra {
     return {
       id: problem.id,
@@ -154,8 +126,8 @@ export class ProblemService {
     };
 
     if (queryTags) {
-      const tags = await this.findProblemTagListByProblemIdAsync(problem.id);
-      baseDetail.tags = await Promise.all(tags.map(tag => this.getProblemTagDetailAsync(tag)));
+      const tags = await this.problemTagService.findProblemTagListByProblemIdAsync(problem.id);
+      baseDetail.tags = await Promise.all(tags.map(tag => this.problemTagService.getProblemTagDetailAsync(tag)));
     }
 
     return baseDetail;
@@ -195,38 +167,6 @@ export class ProblemService {
       fileIO: problemJudgeInfo.fileIO,
       inputFile: problemJudgeInfo.inputFile,
       outputFile: problemJudgeInfo.outputFile,
-    };
-  }
-
-  public getProblemTagBaseDetail(tag: ProblemTagEntity): IProblemTagBaseEntityWithExtra {
-    return {
-      id: tag.id,
-      name: tag.name,
-      typeId: tag.typeId,
-      order: tag.order,
-    };
-  }
-
-  public async getProblemTagDetailAsync(tag: ProblemTagEntity): Promise<IProblemTagEntityWithExtra> {
-    return {
-      ...this.getProblemTagBaseDetail(tag),
-      type: await tag.type,
-    };
-  }
-
-  public getProblemTagTypeBaseDetail(tagType: ProblemTagTypeEntity): IProblemTagTypeBaseEntityWithExtra {
-    return {
-      id: tagType.id,
-      name: tagType.name,
-      color: tagType.color,
-      order: tagType.order,
-    };
-  }
-
-  public async getProblemTagTypeDetailAsync(tagType: ProblemTagTypeEntity): Promise<IProblemTagTypeEntityWithExtra> {
-    return {
-      ...this.getProblemTagTypeBaseDetail(tagType),
-      tags: (await this.findProblemTagListByTypeIdAsync(tagType.id)).map(tag => this.getProblemTagBaseDetail(tag)),
     };
   }
 

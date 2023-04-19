@@ -1,10 +1,11 @@
-import { Controller, Get, Param, Query } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, Query } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { Recaptcha } from "@nestlab/google-recaptcha";
 
 import { AuthRequiredException, PermissionDeniedException, TakeTooManyException } from "@/common/exception";
 import { CurrentUser } from "@/common/user.decorator";
 import { ConfigService } from "@/config/config.service";
-import { ProblemTagDetailDto, ProblemTagTypeDetailDto } from "@/problem/dto/problem-tag.dto";
+import { E_ProblemFileType } from "@/problem/problem-file.type";
 import { UserEntity } from "@/user/user.entity";
 
 import {
@@ -16,6 +17,13 @@ import {
 } from "./dto/problem.detail.dto";
 import { GetProblemListRequestQueryDto, GetProblemListResponseDto } from "./dto/problem.list.dto";
 import {
+  PostProblemFileUploadedReportRequestBodyDto,
+  PostProblemFileUploadedReportResponseDto,
+  PostProblemFileUploadRequestRequestBodyDto,
+  PostProblemFileUploadRequestResponseDto,
+} from "./dto/problem-file.dto";
+import { ProblemTagDetailDto, ProblemTagTypeDetailDto } from "./dto/problem-tag.dto";
+import {
   GetProblemTagListRequestQueryDto,
   GetProblemTagListResponseDto,
   GetProblemTagTypeListRequestQueryDto,
@@ -23,11 +31,18 @@ import {
 } from "./dto/problem-tag.list.dto";
 import { NoSuchProblemException } from "./problem.exception";
 import { ProblemService } from "./problem.service";
+import { ProblemFileService } from "./problem-file.service";
+import { ProblemTagService } from "./problem-tag.service";
 
 @ApiTags("Problem")
 @Controller("problem")
 export class ProblemController {
-  constructor(private readonly configService: ConfigService, private readonly problemService: ProblemService) {}
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly problemService: ProblemService,
+    private readonly problemTagService: ProblemTagService,
+    private readonly problemFileService: ProblemFileService,
+  ) {}
 
   @Get("list")
   @ApiOperation({
@@ -131,14 +146,14 @@ export class ProblemController {
     if (!problem) throw new NoSuchProblemException();
     if (!this.problemService.checkIsAllowedView(problem, currentUser)) throw new PermissionDeniedException();
 
-    const tagEntities = await this.problemService.findProblemTagListByProblemIdAsync(problem.id);
+    const tagEntities = await this.problemTagService.findProblemTagListByProblemIdAsync(problem.id);
     console.log(tagEntities);
 
     let tags: ProblemTagDetailDto[];
     if (queryType) {
-      tags = await Promise.all(tagEntities.map(tag => this.problemService.getProblemTagDetailAsync(tag)));
+      tags = await Promise.all(tagEntities.map(tag => this.problemTagService.getProblemTagDetailAsync(tag)));
     } else {
-      tags = tagEntities.map(tag => this.problemService.getProblemTagBaseDetail(tag));
+      tags = tagEntities.map(tag => this.problemTagService.getProblemTagBaseDetail(tag));
     }
 
     return { tags };
@@ -157,17 +172,62 @@ export class ProblemController {
     if (!this.problemService.checkIsAllowedAccess(currentUser)) throw new PermissionDeniedException();
 
     const { queryTags = false } = query;
-    const tagTypeEntities = await this.problemService.findProblemTagTypeListAsync();
+    const tagTypeEntities = await this.problemTagService.findProblemTagTypeListAsync();
 
     let tagTypes: ProblemTagTypeDetailDto[];
     if (queryTags) {
       tagTypes = await Promise.all(
-        tagTypeEntities.map(tagType => this.problemService.getProblemTagTypeDetailAsync(tagType)),
+        tagTypeEntities.map(tagType => this.problemTagService.getProblemTagTypeDetailAsync(tagType)),
       );
     } else {
-      tagTypes = tagTypeEntities.map(tagType => this.problemService.getProblemTagTypeBaseDetail(tagType));
+      tagTypes = tagTypeEntities.map(tagType => this.problemTagService.getProblemTagTypeBaseDetail(tagType));
     }
 
     return { tagTypes };
+  }
+
+  @Post("file/uploadRequest")
+  @ApiOperation({
+    summary: "A HTTP POST request to sign a file upload request.",
+  })
+  @ApiBearerAuth()
+  @Recaptcha()
+  async postProblemFileUploadRequestAsync(
+    @CurrentUser() currentUser: UserEntity,
+    @Body() body: PostProblemFileUploadRequestRequestBodyDto,
+  ): Promise<PostProblemFileUploadRequestResponseDto> {
+    if (!currentUser) throw new AuthRequiredException();
+    const { problemId, filename, size, type } = body;
+    const problem = await this.problemService.findProblemByIdAsync(problemId);
+    if (!problem) throw new NoSuchProblemException();
+    if (!this.problemService.checkIsAllowedManage(problem, currentUser)) throw new PermissionDeniedException();
+
+    if (type === E_ProblemFileType.TestData) {
+    } else if (type === E_ProblemFileType.AdditionalFile) {
+    }
+
+    const token = this.problemFileService.encodeProblemFileUploadToken({ problemId, filename, size, type });
+    const uploadRequest = await this.problemFileService.signProblemFileUploadRequestAsync(size);
+
+    return { uploadRequest, token };
+  }
+
+  @Post("file/uploadedReport")
+  @ApiOperation({
+    summary: "A HTTP POST request to report a file uploaded.",
+  })
+  @ApiBearerAuth()
+  @Recaptcha()
+  async postProblemFileUploadedReportAsync(
+    @CurrentUser() currentUser: UserEntity,
+    @Body() body: PostProblemFileUploadedReportRequestBodyDto,
+  ): Promise<PostProblemFileUploadedReportResponseDto> {
+    if (!currentUser) throw new AuthRequiredException();
+    const { problemId, filename, type } = this.problemFileService.decodeProblemFileUploadToken(body.token);
+    const problem = await this.problemService.findProblemByIdAsync(problemId);
+    if (!problem) throw new NoSuchProblemException();
+    if (!this.problemService.checkIsAllowedManage(problem, currentUser)) throw new PermissionDeniedException();
+
+    return await this.problemFileService.reportProblemFileUploadedAsync(problem, filename, body.uuid, type);
   }
 }
