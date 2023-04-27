@@ -47,50 +47,14 @@ export class ProblemFileService {
     this.redisClient = redisService.getClient();
   }
 
-  private async cacheUploadRequestAsync(
-    problemId: number,
-    type: E_ProblemFileType,
-    filename: string,
-    fileUploadRequest: IFileUploadRequest,
-  ) {
-    const filenameHash = md5(filename);
-    const redisKey = format(PROBLEM_FILE_UPLOAD_REQUEST_REDIS_KEY, problemId, type, filenameHash);
-    await this.redisClient.set(
-      redisKey,
-      JSON.stringify(fileUploadRequest),
-      "PX",
-      PROBLEM_FILE_UPLOAD_REQUEST_EXPIRE_TIME,
-    );
-  }
-
-  private async getCachedUploadRequestAsync(
-    problemId: number,
-    type: E_ProblemFileType,
-    filename: string,
-  ): Promise<IFileUploadRequest> {
-    const filenameHash = md5(filename);
-    const redisKey = format(PROBLEM_FILE_UPLOAD_REQUEST_REDIS_KEY, problemId, type, filenameHash);
-    const value = await this.redisClient.get(redisKey);
-    return value ? (JSON.parse(value) as IFileUploadRequest) : null;
-  }
-
-  private async removeCachedUploadRequestAsync(problemId: number, type: E_ProblemFileType, filename: string) {
-    const filenameHash = md5(filename);
-    const redisKey = format(PROBLEM_FILE_UPLOAD_REQUEST_REDIS_KEY, problemId, type, filenameHash);
-    await this.redisClient.del(redisKey);
-  }
-
-  private async countCachedUploadRequestAsync(problemId: number, type: E_ProblemFileType) {
-    const redisPattern = format(PROBLEM_FILE_UPLOAD_REQUEST_REDIS_PATTERN, problemId, type);
-    const redisKeys = await this.redisClient.keys(redisPattern);
-    return redisKeys.length;
+  public async findProblemFilesByProblemIdAsync(problemId: number) {
+    return await this.problemFileRepository.find({ where: { problemId }, order: { filename: "ASC" } });
   }
 
   public async getProblemFileDetailAsync(problemFile: ProblemFileEntity): Promise<IProblemFileEntityWithExtra> {
     const file = await this.fileService.findFileByUUIDAsync(problemFile.uuid);
 
     return {
-      id: problemFile.id,
       filename: problemFile.filename,
       type: problemFile.type,
       uuid: problemFile.uuid,
@@ -192,5 +156,44 @@ export class ProblemFileService {
     deleteMinioFileFunction && deleteMinioFileFunction();
 
     return await this.getProblemFileDetailAsync(problemFile);
+  }
+
+  private async cacheUploadRequestAsync(
+    problemId: number,
+    type: E_ProblemFileType,
+    filename: string,
+    fileUploadRequest: IFileUploadRequest,
+  ) {
+    const filenameHash = md5(filename);
+    const redisKey = format(PROBLEM_FILE_UPLOAD_REQUEST_REDIS_KEY, problemId, type, filenameHash);
+    await this.redisClient.set(
+      redisKey,
+      JSON.stringify(fileUploadRequest),
+      "PX",
+      PROBLEM_FILE_UPLOAD_REQUEST_EXPIRE_TIME,
+    );
+  }
+
+  private async getCachedUploadRequestAsync(
+    problemId: number,
+    type: E_ProblemFileType,
+    filename: string,
+  ): Promise<IFileUploadRequest> {
+    const filenameHash = md5(filename);
+    const redisKey = format(PROBLEM_FILE_UPLOAD_REQUEST_REDIS_KEY, problemId, type, filenameHash);
+    const value = await this.redisClient.get(redisKey);
+    return value ? (JSON.parse(value) as IFileUploadRequest) : null;
+  }
+
+  private async removeCachedUploadRequestAsync(problemId: number, type: E_ProblemFileType, filename: string) {
+    const filenameHash = md5(filename);
+    const redisKey = format(PROBLEM_FILE_UPLOAD_REQUEST_REDIS_KEY, problemId, type, filenameHash);
+    await this.redisClient.del(redisKey);
+  }
+
+  private async countCachedUploadRequestAsync(problemId: number, type: E_ProblemFileType) {
+    const redisPattern = format(PROBLEM_FILE_UPLOAD_REQUEST_REDIS_PATTERN, problemId, type);
+    const redisKeys = await this.redisClient.keys(redisPattern);
+    return redisKeys.length;
   }
 }

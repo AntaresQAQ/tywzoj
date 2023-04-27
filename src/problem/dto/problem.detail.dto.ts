@@ -11,14 +11,6 @@ export abstract class GetProblemDetailRequestParamDto {
   @IsInt()
   @Min(0)
   @Type(() => Number)
-  displayId: number;
-}
-
-export abstract class GetProblemDetailByIdRequestParamDto {
-  @ApiProperty()
-  @IsInt()
-  @Min(0)
-  @Type(() => Number)
   id: number;
 }
 
@@ -30,5 +22,16 @@ export abstract class GetProblemDetailRequestQueryDto {
   queryTags?: boolean;
 }
 
-export abstract class GetProblemDetailByIdRequestQueryDto extends GetProblemDetailRequestQueryDto {}
 export abstract class GetProblemDetailResponseDto extends ProblemDetailDto {}
+
+export abstract class GetProblemDetailByDisplayIdRequestParamDto {
+  @ApiProperty()
+  @IsInt()
+  @Min(0)
+  @Type(() => Number)
+  displayId: number;
+}
+
+export abstract class GetProblemDetailByDisplayIdRequestQueryDto extends GetProblemDetailRequestQueryDto {}
+
+export abstract class GetProblemDetailByDisplayIdResponseDto extends GetProblemDetailResponseDto {}

@@ -8,7 +8,6 @@ export enum E_ProblemFileType {
 }
 
 export interface IProblemFileEntity {
-  id: number;
   filename: string;
   uuid: string;
   type: E_ProblemFileType;

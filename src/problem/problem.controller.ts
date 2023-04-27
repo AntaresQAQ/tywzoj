@@ -5,12 +5,12 @@ import { Recaptcha } from "@nestlab/google-recaptcha";
 import { AuthRequiredException, PermissionDeniedException, TakeTooManyException } from "@/common/exception";
 import { CurrentUser } from "@/common/user.decorator";
 import { ConfigService } from "@/config/config.service";
-import { E_ProblemFileType } from "@/problem/problem-file.type";
 import { UserEntity } from "@/user/user.entity";
 
 import {
-  GetProblemDetailByIdRequestParamDto,
-  GetProblemDetailByIdRequestQueryDto,
+  GetProblemDetailByDisplayIdRequestParamDto,
+  GetProblemDetailByDisplayIdRequestQueryDto,
+  GetProblemDetailByDisplayIdResponseDto,
   GetProblemDetailRequestParamDto,
   GetProblemDetailRequestQueryDto,
   GetProblemDetailResponseDto,
@@ -22,16 +22,19 @@ import {
   PostProblemFileUploadRequestRequestBodyDto,
   PostProblemFileUploadRequestResponseDto,
 } from "./dto/problem-file.dto";
+import { GetProblemFilesRequestParamDto, GetProblemFilesResponseDto } from "./dto/problem-file.list.dto";
 import { ProblemTagDetailDto, ProblemTagTypeDetailDto } from "./dto/problem-tag.dto";
 import {
-  GetProblemTagListRequestQueryDto,
-  GetProblemTagListResponseDto,
+  GetProblemTagsRequestParamDto,
+  GetProblemTagsRequestQueryDto,
+  GetProblemTagsResponseDto,
   GetProblemTagTypeListRequestQueryDto,
   GetProblemTagTypeListResponseDto,
 } from "./dto/problem-tag.list.dto";
 import { NoSuchProblemException } from "./problem.exception";
 import { ProblemService } from "./problem.service";
 import { ProblemFileService } from "./problem-file.service";
+import { E_ProblemFileType } from "./problem-file.type";
 import { ProblemTagService } from "./problem-tag.service";
 
 @ApiTags("Problem")
@@ -86,16 +89,16 @@ export class ProblemController {
     };
   }
 
-  @Get("detail/:displayId")
+  @Get("detailByDisplayId/:displayId")
   @ApiOperation({
     summary: "A HTTP GET request to get problem detail.",
   })
   @ApiBearerAuth()
-  async getProblemDetailAsync(
+  async getProblemDetailByDisplayIdAsync(
     @CurrentUser() currentUser: UserEntity,
-    @Param() param: GetProblemDetailRequestParamDto,
-    @Query() query: GetProblemDetailRequestQueryDto,
-  ): Promise<GetProblemDetailResponseDto> {
+    @Param() param: GetProblemDetailByDisplayIdRequestParamDto,
+    @Query() query: GetProblemDetailByDisplayIdRequestQueryDto,
+  ): Promise<GetProblemDetailByDisplayIdResponseDto> {
     if (!currentUser) throw new AuthRequiredException();
 
     const problem = await this.problemService.findProblemByDisplayIdAsync(param.displayId);
@@ -108,15 +111,15 @@ export class ProblemController {
     return await this.problemService.getProblemDetailAsync(problem, queryTags);
   }
 
-  @Get("detailById/:id")
+  @Get("detail/:id")
   @ApiOperation({
     summary: "A HTTP GET request to get problem detail.",
   })
   @ApiBearerAuth()
-  async getProblemDetailByIdAsync(
+  async getProblemDetailAsync(
     @CurrentUser() currentUser: UserEntity,
-    @Param() param: GetProblemDetailByIdRequestParamDto,
-    @Query() query: GetProblemDetailByIdRequestQueryDto,
+    @Param() param: GetProblemDetailRequestParamDto,
+    @Query() query: GetProblemDetailRequestQueryDto,
   ): Promise<GetProblemDetailResponseDto> {
     if (!currentUser) throw new AuthRequiredException();
 
@@ -130,24 +133,25 @@ export class ProblemController {
     return await this.problemService.getProblemDetailAsync(problem, queryTags);
   }
 
-  @Get("tag/list")
+  @Get("detail/:id/tags")
   @ApiOperation({
     summary: "A HTTP GET request to get problem tags.",
   })
   @ApiBearerAuth()
-  async getProblemDetailTagListByIdAsync(
+  async getProblemDetailTagsAsync(
     @CurrentUser() currentUser: UserEntity,
-    @Query() query: GetProblemTagListRequestQueryDto,
-  ): Promise<GetProblemTagListResponseDto> {
+    @Param() param: GetProblemTagsRequestParamDto,
+    @Query() query: GetProblemTagsRequestQueryDto,
+  ): Promise<GetProblemTagsResponseDto> {
     if (!currentUser) throw new AuthRequiredException();
 
-    const { problemId, queryType = false } = query;
-    const problem = await this.problemService.findProblemByIdAsync(problemId);
+    const { id } = param;
+    const { queryType = false } = query;
+    const problem = await this.problemService.findProblemByIdAsync(id);
     if (!problem) throw new NoSuchProblemException();
     if (!this.problemService.checkIsAllowedView(problem, currentUser)) throw new PermissionDeniedException();
 
     const tagEntities = await this.problemTagService.findProblemTagListByProblemIdAsync(problem.id);
-    console.log(tagEntities);
 
     let tags: ProblemTagDetailDto[];
     if (queryType) {
@@ -157,6 +161,26 @@ export class ProblemController {
     }
 
     return { tags };
+  }
+
+  @Get("detail/:id/files")
+  @ApiOperation({
+    summary: "A HTTP GET request to get problem files.",
+  })
+  async getProblemDetailFilesAsync(
+    @CurrentUser() currentUser: UserEntity,
+    @Param() param: GetProblemFilesRequestParamDto,
+  ): Promise<GetProblemFilesResponseDto> {
+    const { id } = param;
+    const problem = await this.problemService.findProblemByIdAsync(id);
+    if (!problem) throw new NoSuchProblemException();
+    if (!this.problemService.checkIsAllowedView(problem, currentUser)) throw new PermissionDeniedException();
+
+    const fileEntities = await this.problemFileService.findProblemFilesByProblemIdAsync(problem.id);
+
+    return {
+      files: await Promise.all(fileEntities.map(file => this.problemFileService.getProblemFileDetailAsync(file))),
+    };
   }
 
   @Get("tagType/list")

@@ -1,18 +1,15 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Transform, Type } from "class-transformer";
-import { IsBoolean, IsInt, IsOptional, Min } from "class-validator";
+import { Transform } from "class-transformer";
+import { IsBoolean, IsOptional } from "class-validator";
 
 import { booleanTransformerFactory } from "@/common/transformers";
 
+import { GetProblemDetailRequestParamDto } from "./problem.detail.dto";
 import { ProblemTagDetailDto, ProblemTagTypeDetailDto } from "./problem-tag.dto";
 
-export class GetProblemTagListRequestQueryDto {
-  @ApiProperty()
-  @IsInt()
-  @Min(0)
-  @Type(() => Number)
-  problemId: number;
+export class GetProblemTagsRequestParamDto extends GetProblemDetailRequestParamDto {}
 
+export class GetProblemTagsRequestQueryDto {
   @ApiPropertyOptional()
   @IsBoolean()
   @IsOptional()
@@ -20,7 +17,7 @@ export class GetProblemTagListRequestQueryDto {
   queryType?: boolean;
 }
 
-export class GetProblemTagListResponseDto {
+export class GetProblemTagsResponseDto {
   @ApiProperty()
   tags: ProblemTagDetailDto[];
 }

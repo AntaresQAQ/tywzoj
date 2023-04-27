@@ -9,9 +9,6 @@ import { E_ProblemFileType, IProblemFileEntityWithExtra } from "../problem-file.
 
 export abstract class ProblemFileDetailDto implements IProblemFileEntityWithExtra {
   @ApiProperty()
-  id: number;
-
-  @ApiProperty()
   filename: string;
 
   @ApiProperty({ enum: E_ProblemFileType })
