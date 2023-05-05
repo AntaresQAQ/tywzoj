@@ -34,7 +34,6 @@ security:
   recaptcha:
     secretKey:
     useRecaptchaNet: false
-    proxyUrl:
   rateLimit:
     enabled: false
     maxRequests: 200

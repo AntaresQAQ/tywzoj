@@ -129,10 +129,6 @@ class RecaptchaSecurityConfig {
 
   @IsBoolean()
   readonly useRecaptchaNet: boolean;
-
-  @IsString()
-  @IsOptional()
-  readonly proxyUrl: string;
 }
 
 class RateLimitSecurityConfig {
