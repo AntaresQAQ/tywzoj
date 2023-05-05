@@ -123,7 +123,7 @@ export class ProblemController {
   ): Promise<GetProblemDetailResponseDto> {
     if (!currentUser) throw new AuthRequiredException();
 
-    const problem = await this.problemService.findProblemByDisplayIdAsync(param.id);
+    const problem = await this.problemService.findProblemByIdAsync(param.id);
     if (!problem) throw new NoSuchProblemException();
 
     if (!this.problemService.checkIsAllowedView(problem, currentUser)) throw new PermissionDeniedException();
