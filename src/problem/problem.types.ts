@@ -1,7 +1,9 @@
 import { CE_UserLevel } from "@/common/user-level";
-import { IProblemSampleEntity } from "@/problem/problem-sample.types";
-import { IProblemTagEntity } from "@/problem/problem-tag.types";
-import { IUserBaseEntityWithExtra } from "@/user/user.types";
+import { IUserAtomicEntityWithExtra } from "@/user/user.types";
+
+import { IProblemJudgeInfoEntity } from "./problem-judge-info.types";
+import { IProblemSampleEntity } from "./problem-sample.types";
+import { IProblemTagEntity } from "./problem-tag.types";
 
 export enum E_ProblemType {
   Traditional = "Traditional",
@@ -22,12 +24,18 @@ export const enum CE_ProblemLevel {
   Internal = CE_UserLevel.Internal,
 }
 
-export interface IProblemBaseEntity {
+export interface IProblemAtomicEntity {
   id: number;
   displayId: number;
   title: string;
+}
+
+export interface IProblemBaseEntity extends IProblemAtomicEntity {
   subtitle: string;
+
+  // isPublic just effects on "Global" scope
   isPublic: boolean;
+  publicTime: Date;
   scope: E_ProblemScope;
   submissionCount: number;
   acceptedSubmissionCount: number;
@@ -42,11 +50,18 @@ export interface IProblemEntity extends IProblemBaseEntity {
   level: CE_ProblemLevel;
 }
 
-export interface IProblemExtra {
-  owner?: IUserBaseEntityWithExtra;
-  samples?: IProblemSampleEntity[];
+export interface IProblemAtomicExtra {}
+
+export interface IProblemBaseExtra extends IProblemAtomicExtra {
   tags?: IProblemTagEntity[];
 }
 
-export type IProblemBaseEntityWithExtra = IProblemBaseEntity & IProblemExtra;
+export interface IProblemExtra extends IProblemBaseExtra {
+  owner: IUserAtomicEntityWithExtra;
+  samples: IProblemSampleEntity[];
+  judgeInfo: IProblemJudgeInfoEntity;
+}
+
+export type IProblemAtomicEntityWithExtra = IProblemAtomicEntity & IProblemAtomicExtra;
+export type IProblemBaseEntityWithExtra = IProblemBaseEntity & IProblemBaseExtra;
 export type IProblemEntityWithExtra = IProblemEntity & IProblemExtra;

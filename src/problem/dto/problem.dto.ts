@@ -1,31 +1,39 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
+import { UserAtomicDetailDto } from "@/user/dto/user.dto";
+
 import {
   CE_ProblemLevel,
   E_ProblemScope,
   E_ProblemType,
-  IProblemBaseEntity,
+  IProblemAtomicEntityWithExtra,
+  IProblemBaseEntityWithExtra,
   IProblemEntityWithExtra,
-} from "@/problem/problem.types";
-import { UserBaseDetailDto } from "@/user/dto/user.dto";
-
+} from "../problem.types";
+import { ProblemJudgeInfoDto } from "./problem-judge-info.dto";
 import { ProblemSampleBaseDetailDto } from "./problem-sample.dto";
+import { ProblemTagDetailDto } from "./problem-tag.dto";
 
-export class ProblemBaseDetailDto implements IProblemBaseEntity {
+export abstract class ProblemAtomicDetailDto implements IProblemAtomicEntityWithExtra {
   @ApiProperty()
   id: number;
 
-  @ApiProperty()
+  @ApiProperty({ nullable: true })
   displayId: number;
 
   @ApiProperty()
   title: string;
+}
 
-  @ApiProperty()
+export abstract class ProblemBaseDetailDto extends ProblemAtomicDetailDto implements IProblemBaseEntityWithExtra {
+  @ApiPropertyOptional({ nullable: true })
   subtitle: string;
 
   @ApiProperty()
   isPublic: boolean;
+
+  @ApiProperty()
+  publicTime: Date;
 
   @ApiProperty({ enum: E_ProblemScope })
   scope: E_ProblemScope;
@@ -35,30 +43,36 @@ export class ProblemBaseDetailDto implements IProblemBaseEntity {
 
   @ApiProperty()
   acceptedSubmissionCount: number;
+
+  @ApiPropertyOptional()
+  tags?: ProblemTagDetailDto[];
 }
 
-export class ProblemDetailDto extends ProblemBaseDetailDto implements IProblemEntityWithExtra {
-  @ApiProperty()
+export abstract class ProblemDetailDto extends ProblemBaseDetailDto implements IProblemEntityWithExtra {
+  @ApiProperty({ nullable: true })
   description: string;
 
-  @ApiProperty()
+  @ApiProperty({ nullable: true })
   inputFormat: string;
 
-  @ApiProperty()
+  @ApiProperty({ nullable: true })
   outputFormat: string;
 
-  @ApiProperty()
+  @ApiProperty({ nullable: true })
   limitAndHint: string;
 
-  @ApiProperty()
+  @ApiProperty({ enum: E_ProblemType })
   type: E_ProblemType;
 
   @ApiProperty()
   level: CE_ProblemLevel;
 
-  @ApiPropertyOptional()
-  owner?: UserBaseDetailDto;
+  @ApiProperty({ nullable: true })
+  owner: UserAtomicDetailDto;
 
-  @ApiPropertyOptional()
-  samples?: ProblemSampleBaseDetailDto[];
+  @ApiProperty({ isArray: true })
+  samples: ProblemSampleBaseDetailDto[];
+
+  @ApiProperty()
+  judgeInfo: ProblemJudgeInfoDto;
 }

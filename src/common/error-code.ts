@@ -1,7 +1,15 @@
+// Attention!
+// Do NOT modify the existing code.
 export const enum CE_ErrorCode {
   // Global
+  Unknown = -1,
   AuthRequired = 401,
   PermissionDenied = 403,
+  NotFound = 404, // Client Only
+  ServerError = 500,
+  RecaptchaError = 1000,
+  ValidationError = 1001,
+  TakeTooMany = 1002,
 
   // Auth (50xx)
   Auth_NoSuchUser = 5000,
@@ -15,10 +23,16 @@ export const enum CE_ErrorCode {
   Auth_EmailVerificationCodeRateLimited = 5008,
 
   // User (51xx)
-  User_TakeTooMany = 5100,
-  User_NoSuchUser = 5101,
+  User_NoSuchUser = 5100,
 
   // Problem (52xx)
-  Problem_TakeTooMany = 5200,
-  Problem_NoSuchProblem = 5201,
+  Problem_NoSuchProblem = 5200,
+  Problem_InvalidFileUploadToken = 5201,
+  Problem_TooManyFileUploadRequest = 5203,
+  Problem_TooLargeUploadFile = 5204,
+  Problem_FileLimitExceeded = 5205,
+
+  // File (53xx)
+  File_DuplicateUUID = 5300,
+  File_FileNotUploaded = 5301,
 }

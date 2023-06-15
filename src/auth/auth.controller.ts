@@ -2,6 +2,7 @@ import { Body, Controller, Get, Post, Query, Req } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { Recaptcha } from "@nestlab/google-recaptcha";
 
+import { GetCheckUsernameRequestQueryDto, GetCheckUsernameResponseDto } from "@/auth/dto/check-username.dto";
 import { PermissionDeniedException } from "@/common/exception";
 import { CurrentUser } from "@/common/user.decorator";
 import { ConfigService } from "@/config/config.service";
@@ -55,6 +56,20 @@ export class AuthController {
       },
       preference: this.configService.preferenceConfigToBeSentToUser,
       userBaseDetail: user && this.userService.getUserBaseDetail(user, user),
+      userPreference: user && (await this.userService.getUserPreferenceAsync(user)),
+      unixTimestamp: Date.now(),
+    };
+  }
+
+  @Get("checkUsername")
+  @ApiOperation({
+    summary: "A HTTP GET request to check username if available.",
+    description: "Recaptcha required.",
+  })
+  @Recaptcha()
+  async checkUsernameAsync(@Query() query: GetCheckUsernameRequestQueryDto): Promise<GetCheckUsernameResponseDto> {
+    return {
+      available: await this.userService.checkUsernameAvailabilityAsync(query.username),
     };
   }
 
@@ -89,6 +104,7 @@ export class AuthController {
     return {
       token: await this.authSessionService.newSessionAsync(user, req.ip, req.headers["user-agent"]),
       userBaseDetail: this.userService.getUserBaseDetail(user, user),
+      userPreference: await this.userService.getUserPreferenceAsync(user),
     };
   }
 
@@ -128,7 +144,8 @@ export class AuthController {
 
     return {
       token: await this.authSessionService.newSessionAsync(user, req.ip, req.headers["user-agent"]),
-      userBaseDetail: await this.userService.getUserBaseDetail(user, user),
+      userBaseDetail: this.userService.getUserBaseDetail(user, user),
+      userPreference: await this.userService.getUserPreferenceAsync(user),
     };
   }
 
@@ -153,7 +170,7 @@ export class AuthController {
     }
 
     const code = await this.authVerificationCodeService.generateAsync(CE_VerificationCodeType.Register, body.email);
-    await this.mailService.sendMailAsync(CE_MailTemplate.RegisterVerificationCode, { code }, body.email);
+    await this.mailService.sendMailAsync(CE_MailTemplate.RegisterVerificationCode, body.lang, { code }, body.email);
   }
 
   @Post("sendChangeEmailVerificationCode")
@@ -178,7 +195,7 @@ export class AuthController {
     if (!(await this.userService.checkEmailAvailabilityAsync(body.email))) throw new DuplicateEmailException();
 
     const code = await this.authVerificationCodeService.generateAsync(CE_VerificationCodeType.ChangeEmail, body.email);
-    await this.mailService.sendMailAsync(CE_MailTemplate.ChangeEmailVerificationCode, { code }, body.email);
+    await this.mailService.sendMailAsync(CE_MailTemplate.ChangeEmailVerificationCode, body.lang, { code }, body.email);
   }
 
   @Post("sendResetPasswordEmailVerificationCode")
@@ -204,7 +221,12 @@ export class AuthController {
       CE_VerificationCodeType.ResetPassword,
       body.email,
     );
-    await this.mailService.sendMailAsync(CE_MailTemplate.ResetPasswordVerificationCode, { code }, body.email);
+    await this.mailService.sendMailAsync(
+      CE_MailTemplate.ResetPasswordVerificationCode,
+      body.lang,
+      { code },
+      body.email,
+    );
   }
 
   @Post("resetForgotPassword")

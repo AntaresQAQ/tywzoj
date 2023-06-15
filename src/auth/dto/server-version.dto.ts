@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 
-export class ServerVersionDto {
+export abstract class ServerVersionDto {
   @ApiProperty()
   hash: string;
 

@@ -6,7 +6,7 @@ import { UserEntity } from "@/user/user.entity";
 export class AuthEntity {
   @OneToOne(() => UserEntity, user => user.auth)
   @JoinColumn()
-  userPromise: Promise<UserEntity>;
+  user: Promise<UserEntity>;
 
   @PrimaryColumn()
   userId: number;

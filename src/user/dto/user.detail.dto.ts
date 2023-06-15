@@ -1,21 +1,23 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsEmail, IsIn, IsNumber, IsOptional, IsString, Max, MaxLength, Min } from "class-validator";
+import { Type } from "class-transformer";
+import { IsEmail, IsInt, IsNumber, IsOptional, IsString, Max, MaxLength, Min } from "class-validator";
 
 import { HttpPatch } from "@/common/types";
 import { CE_UserLevel } from "@/common/user-level";
-import { IsIntString, IsUsername, MinNumberString } from "@/common/validators";
-import { CE_UserGender, IUserEntity } from "@/user/user.types";
+import { IsUsername } from "@/common/validators";
+import { IUserEntity } from "@/user/user.types";
 
 import { UserDetailDto } from "./user.dto";
 
-export class UserDetailRequestParamDto {
+export abstract class UserDetailRequestParamDto {
   @ApiProperty()
-  @IsIntString()
-  @MinNumberString(0)
+  @IsInt()
+  @Min(0)
+  @Type(() => Number)
   readonly id: number;
 }
 
-export class PatchUserDetailRequestBodyDto implements HttpPatch<IUserEntity> {
+export abstract class PatchUserDetailRequestBodyDto implements HttpPatch<IUserEntity> {
   @ApiPropertyOptional()
   @IsOptional()
   @IsUsername()
@@ -35,7 +37,7 @@ export class PatchUserDetailRequestBodyDto implements HttpPatch<IUserEntity> {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  information?: string;
+  readonly information?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -43,12 +45,7 @@ export class PatchUserDetailRequestBodyDto implements HttpPatch<IUserEntity> {
   @Min(CE_UserLevel.Blocked)
   @Max(CE_UserLevel.Admin)
   readonly level?: number;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsIn([CE_UserGender.Male, CE_UserGender.Female, CE_UserGender.Other])
-  readonly gender?: CE_UserGender;
 }
 
-export class GetUserDetailResponseDto extends UserDetailDto {}
-export class PatchUserDetailResponseDto extends UserDetailDto {}
+export abstract class GetUserDetailResponseDto extends UserDetailDto {}
+export abstract class PatchUserDetailResponseDto extends UserDetailDto {}

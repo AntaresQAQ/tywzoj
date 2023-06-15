@@ -1,33 +1,42 @@
 import { Injectable } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
+import { InjectDataSource, InjectRepository } from "@nestjs/typeorm";
 import crypto from "crypto";
-import { Repository } from "typeorm";
+import { DataSource, Like, Repository } from "typeorm";
 
+import { AuthEntity } from "@/auth/auth.entity";
 import { CE_Permissions, checkIsAllowed } from "@/common/user-level";
+import { ProblemEntity } from "@/problem/problem.entity";
+import { E_ProblemScope } from "@/problem/problem.types";
 
 import { UserEntity } from "./user.entity";
-import { IUserBaseEntityWithExtra, IUserEntityWithExtra } from "./user.types";
+import { IUserAtomicEntityWithExtra, IUserBaseEntityWithExtra, IUserEntityWithExtra } from "./user.types";
+import { UserPreferenceEntity } from "./user-preference.entity";
+import { IUserPreferenceEntityWithExtra } from "./user-preference.types";
 
 @Injectable()
 export class UserService {
-  constructor(
+  public constructor(
+    @InjectDataSource()
+    private readonly dataSource: DataSource,
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
+    @InjectRepository(UserPreferenceEntity)
+    private readonly userPreferenceRepository: Repository<UserPreferenceEntity>,
   ) {}
 
-  async findUserByIdAsync(id: number): Promise<UserEntity> {
+  public async findUserByIdAsync(id: number): Promise<UserEntity> {
     return await this.userRepository.findOne({ where: { id } });
   }
 
-  async findUserByUsernameAsync(username: string): Promise<UserEntity> {
+  public async findUserByUsernameAsync(username: string): Promise<UserEntity> {
     return await this.userRepository.findOne({ where: { username } });
   }
 
-  async findUserByEmailAsync(email: string): Promise<UserEntity> {
+  public async findUserByEmailAsync(email: string): Promise<UserEntity> {
     return await this.userRepository.findOne({ where: { email } });
   }
 
-  async findUserListAsync(
+  public async findUserListAsync(
     sortBy: "acceptedProblemCount" | "rating" | "id",
     skipCount: number,
     takeCount: number,
@@ -41,37 +50,71 @@ export class UserService {
     });
   }
 
-  async updateUserAsync(id: number, user: Partial<UserEntity>) {
+  public async searchUsersByUsernameAsync(keyword: string, take: number): Promise<UserEntity[]> {
+    return await this.userRepository.find({ where: { username: Like(`%${keyword}%`) }, take });
+  }
+
+  public async updateUserAsync(id: number, user: Partial<UserEntity>) {
     delete user.id;
     return await this.userRepository.update(id, user);
   }
-  private static getUserAvatar(user: UserEntity): string {
-    const { email = "" } = user;
-    return crypto.createHash("md5").update(email.trim().toLowerCase()).digest("hex");
+
+  public async updateUserPreferenceAsync(userId: number, userPreference: Partial<UserPreferenceEntity>) {
+    delete userPreference.userId;
+    delete userPreference.user;
+    return await this.userPreferenceRepository.update(userId, userPreference);
+  }
+
+  public async deleteUserAsync(user: UserEntity) {
+    await this.dataSource.transaction("READ COMMITTED", async entityManager => {
+      // TODO: Delete all dependencies
+
+      // Delete all personal problems
+      await entityManager.delete(ProblemEntity, { ownerId: user.id, scope: E_ProblemScope.Personal });
+
+      // Delete user preference
+      await entityManager.delete(UserPreferenceEntity, { userId: user.id });
+
+      // Delete auth
+      await entityManager.delete(AuthEntity, { userId: user.id });
+
+      // Delete user
+      await entityManager.remove(user);
+    });
+  }
+
+  private static getUserAvatar(user: UserEntity) {
+    if (!user.email) return null;
+    return crypto.createHash("md5").update(user.email.trim().toLowerCase()).digest("hex");
+  }
+
+  public getUserAtomicDetail(user: UserEntity): IUserAtomicEntityWithExtra {
+    return {
+      id: user.id,
+      username: user.username,
+      avatar: UserService.getUserAvatar(user),
+    };
   }
 
   /**
    * If the current user is ADMIN or self, the email will be returned
    * even if the user set public email to false.
    */
-  getUserBaseDetail(user: UserEntity, currentUser: UserEntity): IUserBaseEntityWithExtra {
-    const shouldReturnEmail = currentUser.publicEmail || this.checkIsAllowedEdit(user, currentUser);
+  public getUserBaseDetail(user: UserEntity, currentUser: UserEntity): IUserBaseEntityWithExtra {
+    const shouldReturnEmail = user.publicEmail || this.checkIsAllowedEdit(user, currentUser);
 
     return {
-      id: user.id,
-      username: user.username,
+      ...this.getUserAtomicDetail(user),
       email: shouldReturnEmail ? user.email : null,
-      nickname: user.nickname || undefined,
+      nickname: user.nickname,
       level: user.level,
       information: user.information,
-      avatar: UserService.getUserAvatar(user),
     };
   }
 
-  getUserDetail(user: UserEntity, currentUser: UserEntity): IUserEntityWithExtra {
+  public getUserDetail(user: UserEntity, currentUser: UserEntity): IUserEntityWithExtra {
     return {
       ...this.getUserBaseDetail(user, currentUser),
-      gender: user.gender,
       rating: user.rating,
       acceptedProblemCount: user.acceptedProblemCount,
       submissionCount: user.submissionCount,
@@ -79,29 +122,42 @@ export class UserService {
     };
   }
 
-  async checkUsernameAvailabilityAsync(username: string): Promise<boolean> {
+  public async getUserPreferenceAsync(user: UserEntity): Promise<IUserPreferenceEntityWithExtra> {
+    let preference = await user.preference;
+    if (!preference) {
+      preference = new UserPreferenceEntity();
+      preference.userId = user.id;
+      await this.userPreferenceRepository.save(preference);
+      preference = await user.preference;
+    }
+    delete preference.userId;
+    delete preference.user;
+    return preference;
+  }
+
+  public async checkUsernameAvailabilityAsync(username: string): Promise<boolean> {
     return (await this.userRepository.count({ where: { username } })) === 0;
   }
 
-  async checkEmailAvailabilityAsync(email: string): Promise<boolean> {
+  public async checkEmailAvailabilityAsync(email: string): Promise<boolean> {
     return (await this.userRepository.count({ where: { email } })) === 0;
   }
 
-  checkIsAllowedEdit(user: UserEntity, currentUser: UserEntity) {
+  public checkIsAllowedEdit(user: UserEntity, currentUser: UserEntity) {
     return (
       this.checkIsAllowedView(currentUser) &&
       (user.id === currentUser.id || this.checkIsAllowedManage(user, currentUser))
     );
   }
 
-  checkIsAllowedManage(user: UserEntity, currentUser: UserEntity) {
+  public checkIsAllowedManage(user: UserEntity, currentUser: UserEntity) {
     return (
       checkIsAllowed(currentUser.level, CE_Permissions.ManageUser) &&
       (currentUser.level > user.level || user.id === currentUser.id)
     );
   }
 
-  checkIsAllowedView(currentUser: UserEntity) {
+  public checkIsAllowedView(currentUser: UserEntity) {
     return checkIsAllowed(currentUser.level, CE_Permissions.AccessSite);
   }
 }

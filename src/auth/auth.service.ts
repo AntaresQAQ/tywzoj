@@ -7,6 +7,7 @@ import { CE_Permissions, checkIsAllowed } from "@/common/user-level";
 import { ConfigService } from "@/config/config.service";
 import { UserEntity } from "@/user/user.entity";
 import { UserService } from "@/user/user.service";
+import { UserPreferenceEntity } from "@/user/user-preference.entity";
 
 import { AuthEntity } from "./auth.entity";
 import {
@@ -70,6 +71,10 @@ export class AuthService {
         auth.userId = user.id;
         auth.password = await AuthService.hashPasswordAsync(password);
         await entityManager.save(auth);
+
+        const preference = new UserPreferenceEntity();
+        preference.userId = user.id;
+        await entityManager.save(preference);
       });
 
       if (this.configService.config.preference.security.requireEmailVerification) {

@@ -38,7 +38,7 @@ export class RedisService implements OnModuleInit {
   }
 
   async cacheGet(key: string): Promise<string> {
-    return await this.client.get(key);
+    return this.client.get(key);
   }
 
   async cacheDelete(key: string): Promise<void> {

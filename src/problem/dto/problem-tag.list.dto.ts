@@ -1,11 +1,36 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { Transform } from "class-transformer";
+import { IsBoolean, IsOptional } from "class-validator";
 
-import { ProblemTagDetailDto, ProblemTagTypeDetailDto } from "@/problem/dto/problem-tag.dto";
+import { booleanTransformerFactory } from "@/common/transformers";
 
-export class GetProblemTagListResponseDto {
+import { GetProblemDetailRequestParamDto } from "./problem.detail.dto";
+import { ProblemTagDetailDto, ProblemTagTypeDetailDto } from "./problem-tag.dto";
+
+export class GetProblemTagsRequestParamDto extends GetProblemDetailRequestParamDto {}
+
+export class GetProblemTagsRequestQueryDto {
+  @ApiPropertyOptional()
+  @IsBoolean()
+  @IsOptional()
+  @Transform(booleanTransformerFactory())
+  queryType?: boolean;
+}
+
+export class GetProblemTagsResponseDto {
   @ApiProperty()
-  tagsDetails: ProblemTagDetailDto[];
+  tags: ProblemTagDetailDto[];
+}
 
+export class GetProblemTagTypeListRequestQueryDto {
+  @ApiPropertyOptional()
+  @IsBoolean()
+  @IsOptional()
+  @Transform(booleanTransformerFactory())
+  queryTags?: boolean;
+}
+
+export class GetProblemTagTypeListResponseDto {
   @ApiProperty()
-  tagTypeDetails: ProblemTagTypeDetailDto[];
+  tagTypes: ProblemTagTypeDetailDto[];
 }

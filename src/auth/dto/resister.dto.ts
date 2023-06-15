@@ -4,7 +4,7 @@ import { IsEmail, IsOptional, IsString, Length } from "class-validator";
 import { PostLoginResponseDto } from "@/auth/dto/login.dto";
 import { IsUsername } from "@/common/validators";
 
-export class PostRegisterRequestBodyDto {
+export abstract class PostRegisterRequestBodyDto {
   @ApiProperty()
   @IsUsername()
   readonly username: string;
@@ -24,4 +24,4 @@ export class PostRegisterRequestBodyDto {
   readonly password: string;
 }
 
-export class PostRegisterResponseDto extends PostLoginResponseDto {}
+export abstract class PostRegisterResponseDto extends PostLoginResponseDto {}

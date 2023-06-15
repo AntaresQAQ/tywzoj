@@ -1,10 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsBoolean, IsIn, IsOptional, IsString, Length } from "class-validator";
+import { Transform, Type } from "class-transformer";
+import { IsBoolean, IsIn, IsInt, IsOptional, IsString, Length, Min } from "class-validator";
 
-import { IsIntString, MinNumberString } from "@/common/validators";
-import { ProblemBaseDetailDto } from "@/problem/dto/problem.dto";
+import { arrayTransformerFactory, booleanTransformerFactory } from "@/common/transformers";
 
-export class GetProblemListRequestQueryDto {
+import { ProblemBaseDetailDto } from "./problem.dto";
+
+export abstract class GetProblemListRequestQueryDto {
   @ApiProperty({ enum: ["id", "title", "submissionCount", "acceptedSubmissionCount"] })
   @IsIn(["id", "title", "submissionCount", "acceptedSubmissionCount"])
   readonly sortBy: "id" | "title" | "submissionCount" | "acceptedSubmissionCount";
@@ -14,13 +16,15 @@ export class GetProblemListRequestQueryDto {
   readonly order: "ASC" | "DESC";
 
   @ApiProperty()
-  @IsIntString()
-  @MinNumberString(0)
+  @IsInt()
+  @Min(0)
+  @Type(() => Number)
   readonly skipCount: number;
 
   @ApiProperty()
-  @IsIntString()
-  @MinNumberString(1)
+  @IsInt()
+  @Min(1)
+  @Type(() => Number)
   readonly takeCount: number;
 
   @ApiPropertyOptional({ nullable: true })
@@ -31,19 +35,23 @@ export class GetProblemListRequestQueryDto {
 
   @ApiProperty()
   @IsBoolean()
+  @Transform(booleanTransformerFactory())
   readonly keywordMatchesId: boolean;
 
   @ApiPropertyOptional({ nullable: true })
   @IsOptional()
-  readonly tagIds?: string;
+  @IsInt({ each: true })
+  @Transform(arrayTransformerFactory({ transformItem: value => Number(value) }))
+  readonly tagIds?: number[];
 
   @ApiPropertyOptional()
   @IsBoolean()
   @IsOptional()
+  @Transform(booleanTransformerFactory())
   readonly queryTags?: boolean;
 }
 
-export class GetProblemListResponseDto {
+export abstract class GetProblemListResponseDto {
   @ApiProperty()
   problems: ProblemBaseDetailDto[];
 

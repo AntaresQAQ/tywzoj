@@ -1,28 +1,37 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsBoolean, IsOptional } from "class-validator";
+import { Transform, Type } from "class-transformer";
+import { IsBoolean, IsInt, IsOptional, Min } from "class-validator";
 
-import { IsIntString, MinNumberString } from "@/common/validators";
-import { ProblemDetailDto } from "@/problem/dto/problem.dto";
-import { ProblemTagTypeDetailDto } from "@/problem/dto/problem-tag.dto";
+import { booleanTransformerFactory } from "@/common/transformers";
 
-export class GetProblemDetailRequestParamDto {
+import { ProblemDetailDto } from "./problem.dto";
+
+export abstract class GetProblemDetailRequestParamDto {
   @ApiProperty()
-  @IsIntString()
-  @MinNumberString(0)
-  displayId: number;
+  @IsInt()
+  @Min(0)
+  @Type(() => Number)
+  id: number;
 }
 
-export class GetProblemDetailRequestQueryDto {
+export abstract class GetProblemDetailRequestQueryDto {
   @ApiPropertyOptional()
   @IsBoolean()
   @IsOptional()
+  @Transform(booleanTransformerFactory())
   queryTags?: boolean;
 }
 
-export class GetProblemDetailResponseDto {
-  @ApiProperty()
-  problemDetail: ProblemDetailDto;
+export abstract class GetProblemDetailResponseDto extends ProblemDetailDto {}
 
-  @ApiPropertyOptional()
-  tagTypeDetails?: ProblemTagTypeDetailDto[];
+export abstract class GetProblemDetailByDisplayIdRequestParamDto {
+  @ApiProperty()
+  @IsInt()
+  @Min(0)
+  @Type(() => Number)
+  displayId: number;
 }
+
+export abstract class GetProblemDetailByDisplayIdRequestQueryDto extends GetProblemDetailRequestQueryDto {}
+
+export abstract class GetProblemDetailByDisplayIdResponseDto extends GetProblemDetailResponseDto {}
