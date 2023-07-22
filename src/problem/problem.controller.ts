@@ -5,6 +5,7 @@ import { Recaptcha } from "@nestlab/google-recaptcha";
 import { AuthRequiredException, PermissionDeniedException, TakeTooManyException } from "@/common/exception";
 import { CurrentUser } from "@/common/user.decorator";
 import { ConfigService } from "@/config/config.service";
+import { ProblemFileEntity } from "@/problem/problem-file.entity";
 import { UserEntity } from "@/user/user.entity";
 
 import {
@@ -175,8 +176,16 @@ export class ProblemController {
     const problem = await this.problemService.findProblemByIdAsync(id);
     if (!problem) throw new NoSuchProblemException();
     if (!this.problemService.checkIsAllowedView(problem, currentUser)) throw new PermissionDeniedException();
+    let fileEntities: ProblemFileEntity[];
 
-    const fileEntities = await this.problemFileService.findProblemFilesByProblemIdAsync(problem.id);
+    if (this.problemService.checkIsAllowedManage(problem, currentUser)) {
+      fileEntities = await this.problemFileService.findProblemFilesByProblemIdAsync(problem.id);
+    } else {
+      fileEntities = await this.problemFileService.findProblemFilesByProblemIdAsync(
+        problem.id,
+        E_ProblemFileType.AdditionalFile,
+      );
+    }
 
     return {
       files: await Promise.all(fileEntities.map(file => this.problemFileService.getProblemFileDetailAsync(file))),
@@ -225,10 +234,6 @@ export class ProblemController {
     const problem = await this.problemService.findProblemByIdAsync(problemId);
     if (!problem) throw new NoSuchProblemException();
     if (!this.problemService.checkIsAllowedManage(problem, currentUser)) throw new PermissionDeniedException();
-
-    if (type === E_ProblemFileType.TestData) {
-    } else if (type === E_ProblemFileType.AdditionalFile) {
-    }
 
     const token = this.problemFileService.encodeProblemFileUploadToken({ problemId, filename, size, type });
     const uploadRequest = await this.problemFileService.signProblemFileUploadRequestAsync(

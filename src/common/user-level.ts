@@ -11,7 +11,8 @@ export const enum CE_UserLevel {
   Blocked = -1000,
 }
 
-export const enum CE_Permissions {
+export const enum CE_Permission {
+  ManageSite = CE_UserLevel.Admin,
   ManageUser = CE_UserLevel.Admin,
   ManageProblem = CE_UserLevel.Manager,
   CreatePersonalProblem = CE_UserLevel.Paid,
@@ -21,6 +22,6 @@ export const enum CE_Permissions {
   AccessSite = CE_UserLevel.General,
 }
 
-export function checkIsAllowed(userLevel: CE_UserLevel, permissions: CE_Permissions) {
+export function checkIsAllowed(userLevel: CE_UserLevel, permissions: CE_Permission) {
   return userLevel >= permissions;
 }

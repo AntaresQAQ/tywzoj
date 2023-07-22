@@ -4,7 +4,7 @@ import crypto from "crypto";
 import { DataSource, Like, Repository } from "typeorm";
 
 import { AuthEntity } from "@/auth/auth.entity";
-import { CE_Permissions, checkIsAllowed } from "@/common/user-level";
+import { CE_Permission, checkIsAllowed } from "@/common/user-level";
 import { ProblemEntity } from "@/problem/problem.entity";
 import { E_ProblemScope } from "@/problem/problem.types";
 
@@ -152,12 +152,12 @@ export class UserService {
 
   public checkIsAllowedManage(user: UserEntity, currentUser: UserEntity) {
     return (
-      checkIsAllowed(currentUser.level, CE_Permissions.ManageUser) &&
+      checkIsAllowed(currentUser.level, CE_Permission.ManageUser) &&
       (currentUser.level > user.level || user.id === currentUser.id)
     );
   }
 
   public checkIsAllowedView(currentUser: UserEntity) {
-    return checkIsAllowed(currentUser.level, CE_Permissions.AccessSite);
+    return checkIsAllowed(currentUser.level, CE_Permission.AccessSite);
   }
 }

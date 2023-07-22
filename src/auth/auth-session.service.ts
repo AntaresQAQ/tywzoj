@@ -51,7 +51,7 @@ export class AuthSessionService {
   }
 
   async newSessionAsync(user: UserEntity, loginIp: string, userAgent: string): Promise<string> {
-    const timeStamp = +new Date();
+    const timeStamp = Date.now();
     const sessionInfo: ISessionInfoInternal = {
       loginIp: loginIp,
       userAgent: userAgent,
@@ -60,7 +60,7 @@ export class AuthSessionService {
 
     const sessionId = await this.redis.callSessionManager("new", timeStamp, user.id, JSON.stringify(sessionInfo));
 
-    return jwt.sign(user.id.toString() + " " + sessionId, this.configService.config.security.sessionSecret);
+    return jwt.sign(`${user.id.toString()} ${sessionId}`, this.configService.config.security.sessionSecret);
   }
 
   async revokeAllSessionsExceptAsync(userId: number, sessionId: number): Promise<void> {

@@ -2,7 +2,7 @@ import { forwardRef, Inject, Injectable } from "@nestjs/common";
 import { InjectDataSource, InjectRepository } from "@nestjs/typeorm";
 import { DataSource, In, Repository } from "typeorm";
 
-import { CE_Permissions, checkIsAllowed } from "@/common/user-level";
+import { CE_Permission, checkIsAllowed } from "@/common/user-level";
 import { escapeLike } from "@/database/database.utils";
 import { ProblemTagService } from "@/problem/problem-tag.service";
 import { UserEntity } from "@/user/user.entity";
@@ -65,7 +65,7 @@ export class ProblemService {
       .andWhere("scope = :scope", { scope: E_ProblemScope.Global })
       .andWhere("problem.displayId IS NOT NULL");
 
-    if (!checkIsAllowed(currentUser.level, CE_Permissions.ManageProblem)) {
+    if (!checkIsAllowed(currentUser.level, CE_Permission.ManageProblem)) {
       queryBuilder.andWhere(qb => {
         qb.where("isPublic = 1");
       });
@@ -171,7 +171,7 @@ export class ProblemService {
   }
 
   public checkIsAllowedAccess(currentUser: UserEntity): boolean {
-    return checkIsAllowed(currentUser.level, CE_Permissions.AccessProblem);
+    return checkIsAllowed(currentUser.level, CE_Permission.AccessProblem);
   }
 
   public checkIsAllowedView(problem: ProblemEntity, currentUser: UserEntity): boolean {
@@ -180,7 +180,7 @@ export class ProblemService {
 
     if (problem.scope === E_ProblemScope.Group) {
       // should check this at group service
-      return checkIsAllowed(currentUser.level, CE_Permissions.AccessGroup);
+      return checkIsAllowed(currentUser.level, CE_Permission.AccessGroup);
     } else if (problem.scope === E_ProblemScope.Personal) {
       return currentUser.id === problem.ownerId;
     } /* E_ProblemScope.Global */ else {
@@ -190,11 +190,11 @@ export class ProblemService {
 
   public checkIsAllowedManage(problem: ProblemEntity, currentUser: UserEntity): boolean {
     if (!this.checkIsAllowedAccess(currentUser)) return false;
-    if (checkIsAllowed(currentUser.level, CE_Permissions.ManageProblem)) return true;
+    if (checkIsAllowed(currentUser.level, CE_Permission.ManageProblem)) return true;
 
     if (problem.scope === E_ProblemScope.Group) {
       // should check this at group service
-      return checkIsAllowed(currentUser.level, CE_Permissions.AccessGroup);
+      return checkIsAllowed(currentUser.level, CE_Permission.AccessGroup);
     } else if (problem.scope === E_ProblemScope.Personal) {
       return problem.ownerId === currentUser.id;
     } /* E_ProblemScope.Global */ else {
@@ -207,11 +207,11 @@ export class ProblemService {
 
     if (problemScope === E_ProblemScope.Group) {
       // should check this at group service
-      return checkIsAllowed(currentUser.level, CE_Permissions.AccessGroup);
+      return checkIsAllowed(currentUser.level, CE_Permission.AccessGroup);
     } else if (problemScope === E_ProblemScope.Personal) {
-      return checkIsAllowed(currentUser.level, CE_Permissions.CreatePersonalProblem);
+      return checkIsAllowed(currentUser.level, CE_Permission.CreatePersonalProblem);
     } /* E_ProblemScope.Global */ else {
-      return checkIsAllowed(currentUser.level, CE_Permissions.ManageProblem);
+      return checkIsAllowed(currentUser.level, CE_Permission.ManageProblem);
     }
   }
 }

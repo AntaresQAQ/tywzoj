@@ -3,7 +3,7 @@ import { InjectDataSource, InjectRepository } from "@nestjs/typeorm";
 import bcrypt from "bcrypt";
 import { DataSource, Repository } from "typeorm";
 
-import { CE_Permissions, checkIsAllowed } from "@/common/user-level";
+import { CE_Permission, checkIsAllowed } from "@/common/user-level";
 import { ConfigService } from "@/config/config.service";
 import { UserEntity } from "@/user/user.entity";
 import { UserService } from "@/user/user.service";
@@ -94,7 +94,7 @@ export class AuthService {
   }
 
   checkIsAllowedLogin(currentUser: UserEntity) {
-    return checkIsAllowed(currentUser.level, CE_Permissions.AccessSite);
+    return checkIsAllowed(currentUser.level, CE_Permission.AccessSite);
   }
 
   checkIsAllowedRegister() {

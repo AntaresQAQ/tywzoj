@@ -47,8 +47,8 @@ export class ProblemFileService {
     this.redisClient = redisService.getClient();
   }
 
-  public async findProblemFilesByProblemIdAsync(problemId: number) {
-    return await this.problemFileRepository.find({ where: { problemId }, order: { filename: "ASC" } });
+  public async findProblemFilesByProblemIdAsync(problemId: number, type?: E_ProblemFileType) {
+    return await this.problemFileRepository.find({ where: { problemId, type }, order: { filename: "ASC" } });
   }
 
   public async getProblemFileDetailAsync(problemFile: ProblemFileEntity): Promise<IProblemFileEntityWithExtra> {
