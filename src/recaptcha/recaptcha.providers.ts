@@ -10,7 +10,7 @@ export const recaptchaProviders = [
     imports: [ConfigModule],
     useFactory: (configService: ConfigService) => ({
       debug: !isProduction(),
-      secretKey: configService.config.security.recaptcha.secretKey,
+      secretKey: configService.config.security.recaptcha.secretKey || "X",
       response: (req: IRequestWithSession) => String(req.headers["x-recaptcha-token"]),
       skipIf: () => !configService.config.preference.security.recaptchaEnabled,
       network: configService.config.security.recaptcha.useRecaptchaNet
