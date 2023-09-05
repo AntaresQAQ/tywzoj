@@ -20,22 +20,22 @@ import { ProblemTagMapEntity } from "./problem-tag-map.entity";
 import { ProblemTagTypeEntity } from "./problem-tag-type.entity";
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([ProblemEntity]),
-    TypeOrmModule.forFeature([ProblemFileEntity]),
-    TypeOrmModule.forFeature([ProblemSampleEntity]),
-    TypeOrmModule.forFeature([ProblemJudgeInfoEntity]),
-    TypeOrmModule.forFeature([ProblemTagEntity]),
-    TypeOrmModule.forFeature([ProblemTagMapEntity]),
-    TypeOrmModule.forFeature([ProblemTagTypeEntity]),
-    TypeOrmModule.forFeature([ProblemSetEntity]),
-    TypeOrmModule.forFeature([ProblemSetMapEntity]),
-    forwardRef(() => UserModule),
-    forwardRef(() => FileModule),
-    forwardRef(() => RedisModule),
-  ],
-  providers: [ProblemService, ProblemTagService, ProblemFileService],
-  exports: [ProblemService, ProblemTagService, ProblemFileService],
-  controllers: [ProblemController],
+    imports: [
+        TypeOrmModule.forFeature([ProblemEntity]),
+        TypeOrmModule.forFeature([ProblemFileEntity]),
+        TypeOrmModule.forFeature([ProblemSampleEntity]),
+        TypeOrmModule.forFeature([ProblemJudgeInfoEntity]),
+        TypeOrmModule.forFeature([ProblemTagEntity]),
+        TypeOrmModule.forFeature([ProblemTagMapEntity]),
+        TypeOrmModule.forFeature([ProblemTagTypeEntity]),
+        TypeOrmModule.forFeature([ProblemSetEntity]),
+        TypeOrmModule.forFeature([ProblemSetMapEntity]),
+        forwardRef(() => UserModule),
+        forwardRef(() => FileModule),
+        forwardRef(() => RedisModule),
+    ],
+    providers: [ProblemService, ProblemTagService, ProblemFileService],
+    exports: [ProblemService, ProblemTagService, ProblemFileService],
+    controllers: [ProblemController],
 })
 export class ProblemModule {}

@@ -5,26 +5,26 @@ import { UserEntity } from "@/user/user.entity";
 
 @Entity("user_problem_map")
 export class UserProblemMapEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+    @PrimaryGeneratedColumn()
+    id: number;
 
-  @ManyToOne(() => UserEntity, {
-    onDelete: "CASCADE",
-  })
-  @JoinColumn()
-  user: Promise<UserEntity>;
+    @ManyToOne(() => UserEntity, {
+        onDelete: "CASCADE",
+    })
+    @JoinColumn()
+    user: Promise<UserEntity>;
 
-  @Column()
-  @Index()
-  userId: number;
+    @Column()
+    @Index()
+    userId: number;
 
-  @ManyToOne(() => ProblemEntity, {
-    onDelete: "CASCADE",
-  })
-  @JoinColumn()
-  problem: Promise<ProblemEntity>;
+    @ManyToOne(() => ProblemEntity, {
+        onDelete: "CASCADE",
+    })
+    @JoinColumn()
+    problem: Promise<ProblemEntity>;
 
-  @Column()
-  @Index()
-  problemId: number;
+    @Column()
+    @Index()
+    problemId: number;
 }

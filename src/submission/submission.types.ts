@@ -1,41 +1,41 @@
 import { IUserAtomicEntityWithExtra } from "@/user/user.types";
 
 export enum E_SubmissionStatus {
-  Pending = "PD",
+    Pending = "PD",
 
-  SystemError = "SE",
-  Canceled = "CCL",
+    SystemError = "SE",
+    Canceled = "CCL",
 
-  JudgementFailed = "FLD",
+    JudgementFailed = "FLD",
 
-  CompilationError = "CE",
-  FileError = "FE",
-  RuntimeError = "RE",
-  TimeLimitExceeded = "TLE",
-  MemoryLimitExceeded = "MLE",
-  OutputLimitExceeded = "OLE",
-  PartiallyCorrect = "PC",
-  WrongAnswer = "WA",
-  Accepted = "AC",
+    CompilationError = "CE",
+    FileError = "FE",
+    RuntimeError = "RE",
+    TimeLimitExceeded = "TLE",
+    MemoryLimitExceeded = "MLE",
+    OutputLimitExceeded = "OLE",
+    PartiallyCorrect = "PC",
+    WrongAnswer = "WA",
+    Accepted = "AC",
 }
 
 export interface ISubmissionBaseEntity {
-  id: number;
-  codeLang: string;
-  answerSize: number;
-  timeUsed: number;
-  memoryUsed: number;
-  score: number;
-  status: E_SubmissionStatus;
-  submitTime: Date;
+    id: number;
+    codeLang: string;
+    answerSize: number;
+    timeUsed: number;
+    memoryUsed: number;
+    score: number;
+    status: E_SubmissionStatus;
+    submitTime: Date;
 }
 
 export interface ISubmissionEntity extends ISubmissionBaseEntity {
-  code: string;
+    code: string;
 }
 
 export interface ISubmissionBaseExtra {
-  submitter: IUserAtomicEntityWithExtra;
+    submitter: IUserAtomicEntityWithExtra;
 }
 
 export interface ISubmissionExtra {}

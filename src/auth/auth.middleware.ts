@@ -9,36 +9,36 @@ import { AuthSessionService } from "./auth-session.service";
 const asyncLocalStorage = new AsyncLocalStorage();
 
 export interface ISession {
-  sessionKey?: string;
-  sessionId?: number;
-  user?: UserEntity;
+    sessionKey?: string;
+    sessionId?: number;
+    user?: UserEntity;
 }
 
 export interface IRequestWithSession extends Request {
-  session: ISession;
+    session: ISession;
 }
 
 @Injectable()
 export class AuthMiddleware implements NestMiddleware {
-  constructor(private readonly authSessionService: AuthSessionService) {}
+    constructor(private readonly authSessionService: AuthSessionService) {}
 
-  // eslint-disable-next-line @typescript-eslint/naming-convention
-  async use(req: IRequestWithSession, res: Response, next: () => void): Promise<void> {
-    const authHeader = req.headers.authorization;
-    const sessionKey = authHeader && authHeader.split(" ")[1];
-    if (sessionKey) {
-      const [sessionId, user] = await this.authSessionService.accessSessionAsync(sessionKey);
-      if (user) {
-        req.session = {
-          sessionKey,
-          sessionId,
-          user,
-        };
-      }
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    async use(req: IRequestWithSession, res: Response, next: () => void): Promise<void> {
+        const authHeader = req.headers.authorization;
+        const sessionKey = authHeader && authHeader.split(" ")[1];
+        if (sessionKey) {
+            const [sessionId, user] = await this.authSessionService.accessSessionAsync(sessionKey);
+            if (user) {
+                req.session = {
+                    sessionKey,
+                    sessionId,
+                    user,
+                };
+            }
+        }
+
+        asyncLocalStorage.run(req, () => next());
     }
-
-    asyncLocalStorage.run(req, () => next());
-  }
 }
 
 /**
@@ -48,5 +48,5 @@ export class AuthMiddleware implements NestMiddleware {
  * run in different contexts.
  */
 export function getCurrentRequest(): IRequestWithSession {
-  return asyncLocalStorage.getStore() as IRequestWithSession;
+    return asyncLocalStorage.getStore() as IRequestWithSession;
 }

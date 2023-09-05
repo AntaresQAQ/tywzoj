@@ -22,7 +22,7 @@ env:
 rules:
   arrow-parens:
     - error
-    - as-needed
+    - always
   curly:
     - error
     - multi-line

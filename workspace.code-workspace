@@ -1,0 +1,31 @@
+{
+    "folders": [
+        {
+            "path": "."
+        }
+    ],
+    "settings": {
+        "git.ignoreLimitWarning": true,
+        "typescript.suggest.autoImports": true,
+        "files.eol": "\n",
+        "files.insertFinalNewline": true,
+        "typescript.tsdk": "node_modules/typescript/lib",
+        "importSorter.importStringConfiguration.maximumNumberOfImportExpressionsPerLine.count": 120,
+        "importSorter.importStringConfiguration.quoteMark": "double",
+        "importSorter.importStringConfiguration.trailingComma": "multiLine",
+        "editor.codeActionsOnSave": {
+            "source.fixAll.eslint": true
+        },
+    },
+    "extensions": {
+        "recommendations": [
+            "editorconfig.editorconfig",
+            "eamodio.gitlens",
+            "dbaeumer.vscode-eslint",
+            "esbenp.prettier-vscode",
+            "mike-co.import-sorter",
+            "rvest.vs-code-prettier-eslint",
+            "kuscamara.remove-unused-imports",
+        ]
+    }
+}

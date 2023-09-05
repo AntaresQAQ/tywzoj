@@ -6,28 +6,28 @@ import { ProblemSetEntity } from "./problem-set.entity";
 @Entity("problem_set_map")
 @Index(["problemSetId", "problemId"], { unique: true })
 export class ProblemSetMapEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+    @PrimaryGeneratedColumn()
+    id: number;
 
-  @Column({ type: "integer", default: 100 })
-  sortIndex: number;
+    @Column({ type: "integer", default: 100 })
+    sortIndex: number;
 
-  @ManyToOne(() => ProblemSetEntity, {
-    onDelete: "CASCADE",
-  })
-  @JoinColumn()
-  problemSet: Promise<ProblemSetEntity>;
+    @ManyToOne(() => ProblemSetEntity, {
+        onDelete: "CASCADE",
+    })
+    @JoinColumn()
+    problemSet: Promise<ProblemSetEntity>;
 
-  @Column()
-  @Index()
-  problemSetId: number;
+    @Column()
+    @Index()
+    problemSetId: number;
 
-  @ManyToOne(() => ProblemEntity, {
-    onDelete: "CASCADE",
-  })
-  @JoinColumn()
-  problem: Promise<ProblemEntity>;
+    @ManyToOne(() => ProblemEntity, {
+        onDelete: "CASCADE",
+    })
+    @JoinColumn()
+    problem: Promise<ProblemEntity>;
 
-  @Column()
-  problemId: number;
+    @Column()
+    problemId: number;
 }

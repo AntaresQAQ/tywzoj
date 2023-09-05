@@ -8,53 +8,53 @@ import { FileDto, FileUploadRequestDto } from "@/file/dto/file.dto";
 import { E_ProblemFileType, IProblemFileEntityWithExtra } from "../problem-file.type";
 
 export abstract class ProblemFileDetailDto implements IProblemFileEntityWithExtra {
-  @ApiProperty()
-  filename: string;
+    @ApiProperty()
+    filename: string;
 
-  @ApiProperty({ enum: E_ProblemFileType })
-  type: E_ProblemFileType;
+    @ApiProperty({ enum: E_ProblemFileType })
+    type: E_ProblemFileType;
 
-  @ApiProperty()
-  uuid: string;
+    @ApiProperty()
+    uuid: string;
 
-  @ApiProperty()
-  file: FileDto;
+    @ApiProperty()
+    file: FileDto;
 }
 
 export abstract class PostProblemFileUploadRequestRequestBodyDto {
-  @ApiProperty()
-  @IsInt()
-  @Min(0)
-  @Type(() => Number)
-  readonly problemId: number;
+    @ApiProperty()
+    @IsInt()
+    @Min(0)
+    @Type(() => Number)
+    readonly problemId: number;
 
-  @ApiProperty()
-  @IsValidFilename()
-  @MaxLength(256)
-  readonly filename: string;
+    @ApiProperty()
+    @IsValidFilename()
+    @MaxLength(256)
+    readonly filename: string;
 
-  @ApiProperty({ enum: E_ProblemFileType })
-  @IsEnum(E_ProblemFileType)
-  readonly type: E_ProblemFileType;
+    @ApiProperty({ enum: E_ProblemFileType })
+    @IsEnum(E_ProblemFileType)
+    readonly type: E_ProblemFileType;
 
-  @ApiProperty()
-  @IsInt()
-  readonly size: number;
+    @ApiProperty()
+    @IsInt()
+    readonly size: number;
 }
 
 export abstract class PostProblemFileUploadRequestResponseDto {
-  uploadRequest: FileUploadRequestDto;
-  token: string;
+    uploadRequest: FileUploadRequestDto;
+    token: string;
 }
 
 export abstract class PostProblemFileUploadedReportRequestBodyDto {
-  @ApiProperty()
-  @IsString()
-  readonly token: string;
+    @ApiProperty()
+    @IsString()
+    readonly token: string;
 
-  @ApiProperty()
-  @IsUUID()
-  readonly uuid: string;
+    @ApiProperty()
+    @IsUUID()
+    readonly uuid: string;
 }
 
 export abstract class PostProblemFileUploadedReportResponseDto extends ProblemFileDetailDto {}

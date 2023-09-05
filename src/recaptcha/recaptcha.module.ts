@@ -5,8 +5,8 @@ import { recaptchaProviders } from "./recaptcha.providers";
 
 @Global()
 @Module({
-  imports: [...recaptchaProviders],
-  exports: [...recaptchaProviders],
-  providers: [RecaptchaFilter],
+    imports: [...recaptchaProviders],
+    exports: [...recaptchaProviders],
+    providers: [RecaptchaFilter],
 })
 export class RecaptchaModule {}

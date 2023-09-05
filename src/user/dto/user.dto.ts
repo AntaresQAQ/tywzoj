@@ -4,40 +4,40 @@ import { CE_UserLevel } from "@/common/user-level";
 import { IUserAtomicEntityWithExtra, IUserBaseEntityWithExtra, IUserEntityWithExtra } from "@/user/user.types";
 
 export abstract class UserAtomicDetailDto implements IUserAtomicEntityWithExtra {
-  @ApiProperty()
-  id: number;
+    @ApiProperty()
+    id: number;
 
-  @ApiProperty()
-  username: string;
+    @ApiProperty()
+    username: string;
 
-  @ApiProperty({ nullable: true })
-  avatar: string;
+    @ApiProperty({ nullable: true })
+    avatar: string;
 }
 
 export abstract class UserBaseDetailDto extends UserAtomicDetailDto implements IUserBaseEntityWithExtra {
-  @ApiProperty()
-  email: string;
+    @ApiProperty()
+    email: string;
 
-  @ApiPropertyOptional()
-  information?: string;
+    @ApiPropertyOptional()
+    information?: string;
 
-  @ApiProperty()
-  level: CE_UserLevel;
+    @ApiProperty()
+    level: CE_UserLevel;
 
-  @ApiPropertyOptional()
-  nickname?: string;
+    @ApiPropertyOptional()
+    nickname?: string;
 }
 
 export abstract class UserDetailDto extends UserBaseDetailDto implements IUserEntityWithExtra {
-  @ApiProperty()
-  acceptedProblemCount: number;
+    @ApiProperty()
+    acceptedProblemCount: number;
 
-  @ApiProperty()
-  submissionCount: number;
+    @ApiProperty()
+    submissionCount: number;
 
-  @ApiProperty()
-  rating: number;
+    @ApiProperty()
+    rating: number;
 
-  @ApiProperty()
-  registrationTime: Date;
+    @ApiProperty()
+    registrationTime: Date;
 }

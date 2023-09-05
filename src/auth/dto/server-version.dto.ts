@@ -1,9 +1,9 @@
 import { ApiProperty } from "@nestjs/swagger";
 
 export abstract class ServerVersionDto {
-  @ApiProperty()
-  hash: string;
+    @ApiProperty()
+    hash: string;
 
-  @ApiProperty()
-  date: string;
+    @ApiProperty()
+    date: string;
 }
