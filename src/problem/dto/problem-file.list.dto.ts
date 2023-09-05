@@ -6,6 +6,6 @@ import { ProblemFileDetailDto } from "./problem-file.dto";
 export abstract class GetProblemFilesRequestParamDto extends GetProblemDetailRequestParamDto {}
 
 export abstract class GetProblemFilesResponseDto {
-  @ApiProperty()
-  files: ProblemFileDetailDto[];
+    @ApiProperty()
+    files: ProblemFileDetailDto[];
 }

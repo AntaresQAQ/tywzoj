@@ -1,17 +1,17 @@
 import { CE_Language } from "@/common/locales";
 
 export const enum CE_Theme {
-  Light = "Light",
-  Dark = "Dark",
-  HighContrast = "HighContrast",
+    Light = "Light",
+    Dark = "Dark",
+    HighContrast = "HighContrast",
 }
 
 export interface IUserPreferenceEntity {
-  userPreferTheme: CE_Theme;
-  userPreferLanguage: CE_Language;
+    userPreferTheme: CE_Theme;
+    userPreferLanguage: CE_Language;
 
-  showTagsOnProblemList: boolean;
-  showTagsOnProblemDetail: boolean;
+    showTagsOnProblemList: boolean;
+    showTagsOnProblemDetail: boolean;
 }
 
 export interface IUserPreferenceExtra {}

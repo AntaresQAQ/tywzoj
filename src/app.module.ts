@@ -17,29 +17,29 @@ import { ErrorFilter } from "./error.filter";
 import { RateLimiterMiddleware } from "./rate-limiter.middleware";
 
 @Module({
-  imports: [
-    NestConfigModule.forRoot({
-      envFilePath: [".env.local", ".env"],
-    }),
-    ConfigModule,
-    RecaptchaModule,
-    forwardRef(() => DatabaseModule),
-    forwardRef(() => UserModule),
-    forwardRef(() => AuthModule),
-    forwardRef(() => RedisModule),
-    forwardRef(() => MailModule),
-    forwardRef(() => ProblemModule),
-    forwardRef(() => ArticleModule),
-    forwardRef(() => SubmissionModule),
-    forwardRef(() => FileModule),
-  ],
-  providers: [ErrorFilter],
+    imports: [
+        NestConfigModule.forRoot({
+            envFilePath: [".env.local", ".env"],
+        }),
+        ConfigModule,
+        RecaptchaModule,
+        forwardRef(() => DatabaseModule),
+        forwardRef(() => UserModule),
+        forwardRef(() => AuthModule),
+        forwardRef(() => RedisModule),
+        forwardRef(() => MailModule),
+        forwardRef(() => ProblemModule),
+        forwardRef(() => ArticleModule),
+        forwardRef(() => SubmissionModule),
+        forwardRef(() => FileModule),
+    ],
+    providers: [ErrorFilter],
 })
 export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer): void {
-    consumer.apply(RateLimiterMiddleware).forRoutes({
-      path: "*",
-      method: RequestMethod.ALL,
-    });
-  }
+    configure(consumer: MiddlewareConsumer): void {
+        consumer.apply(RateLimiterMiddleware).forRoutes({
+            path: "*",
+            method: RequestMethod.ALL,
+        });
+    }
 }

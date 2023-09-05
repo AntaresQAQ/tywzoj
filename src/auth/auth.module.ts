@@ -13,21 +13,21 @@ import { AuthService } from "./auth.service";
 import { AuthSessionService } from "./auth-session.service";
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([AuthEntity]),
-    forwardRef(() => RedisModule),
-    forwardRef(() => UserModule),
-    forwardRef(() => MailModule),
-  ],
-  exports: [AuthService, AuthSessionService, AuthVerificationCodeService],
-  providers: [AuthService, AuthSessionService, AuthVerificationCodeService],
-  controllers: [AuthController],
+    imports: [
+        TypeOrmModule.forFeature([AuthEntity]),
+        forwardRef(() => RedisModule),
+        forwardRef(() => UserModule),
+        forwardRef(() => MailModule),
+    ],
+    exports: [AuthService, AuthSessionService, AuthVerificationCodeService],
+    providers: [AuthService, AuthSessionService, AuthVerificationCodeService],
+    controllers: [AuthController],
 })
 export class AuthModule implements NestModule {
-  configure(consumer: MiddlewareConsumer): void {
-    consumer.apply(AuthMiddleware).forRoutes({
-      path: "*",
-      method: RequestMethod.ALL,
-    });
-  }
+    configure(consumer: MiddlewareConsumer): void {
+        consumer.apply(AuthMiddleware).forRoutes({
+            path: "*",
+            method: RequestMethod.ALL,
+        });
+    }
 }

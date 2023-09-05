@@ -4,45 +4,45 @@ import { IProblemTagBaseEntityWithExtra, IProblemTagEntityWithExtra } from "../p
 import { IProblemTagTypeBaseEntityWithExtra, IProblemTagTypeEntityWithExtra } from "../problem-tag-type.types";
 
 export abstract class ProblemTagBaseDetailDto implements IProblemTagBaseEntityWithExtra {
-  @ApiProperty()
-  id: number;
+    @ApiProperty()
+    id: number;
 
-  @ApiProperty()
-  name: string;
+    @ApiProperty()
+    name: string;
 
-  @ApiProperty()
-  typeId: number;
+    @ApiProperty()
+    typeId: number;
 
-  @ApiProperty()
-  order: number;
+    @ApiProperty()
+    order: number;
 }
 
 export abstract class ProblemTagTypeBaseDetailDto implements IProblemTagTypeBaseEntityWithExtra {
-  @ApiProperty()
-  id: number;
+    @ApiProperty()
+    id: number;
 
-  @ApiProperty()
-  name: string;
+    @ApiProperty()
+    name: string;
 
-  @ApiProperty()
-  color: string;
+    @ApiProperty()
+    color: string;
 
-  @ApiProperty()
-  order: number;
+    @ApiProperty()
+    order: number;
 
-  @ApiPropertyOptional()
-  tags?: ProblemTagDetailDto[];
+    @ApiPropertyOptional()
+    tags?: ProblemTagDetailDto[];
 }
 
 export abstract class ProblemTagDetailDto extends ProblemTagBaseDetailDto implements IProblemTagEntityWithExtra {
-  @ApiPropertyOptional()
-  type?: ProblemTagTypeBaseDetailDto;
+    @ApiPropertyOptional()
+    type?: ProblemTagTypeBaseDetailDto;
 }
 
 export abstract class ProblemTagTypeDetailDto
-  extends ProblemTagTypeBaseDetailDto
-  implements IProblemTagTypeEntityWithExtra
+    extends ProblemTagTypeBaseDetailDto
+    implements IProblemTagTypeEntityWithExtra
 {
-  @ApiPropertyOptional()
-  tags?: ProblemTagBaseDetailDto[];
+    @ApiPropertyOptional()
+    tags?: ProblemTagBaseDetailDto[];
 }

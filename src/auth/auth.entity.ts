@@ -4,13 +4,13 @@ import { UserEntity } from "@/user/user.entity";
 
 @Entity("auth")
 export class AuthEntity {
-  @OneToOne(() => UserEntity, user => user.auth)
-  @JoinColumn()
-  user: Promise<UserEntity>;
+    @OneToOne(() => UserEntity, (user) => user.auth)
+    @JoinColumn()
+    user: Promise<UserEntity>;
 
-  @PrimaryColumn()
-  userId: number;
+    @PrimaryColumn()
+    userId: number;
 
-  @Column({ type: "char", length: 60 })
-  password: string;
+    @Column({ type: "char", length: 60 })
+    password: string;
 }

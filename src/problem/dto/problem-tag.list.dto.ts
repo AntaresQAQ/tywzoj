@@ -10,27 +10,27 @@ import { ProblemTagDetailDto, ProblemTagTypeDetailDto } from "./problem-tag.dto"
 export class GetProblemTagsRequestParamDto extends GetProblemDetailRequestParamDto {}
 
 export class GetProblemTagsRequestQueryDto {
-  @ApiPropertyOptional()
-  @IsBoolean()
-  @IsOptional()
-  @Transform(booleanTransformerFactory())
-  queryType?: boolean;
+    @ApiPropertyOptional()
+    @IsBoolean()
+    @IsOptional()
+    @Transform(booleanTransformerFactory())
+    queryType?: boolean;
 }
 
 export class GetProblemTagsResponseDto {
-  @ApiProperty()
-  tags: ProblemTagDetailDto[];
+    @ApiProperty()
+    tags: ProblemTagDetailDto[];
 }
 
 export class GetProblemTagTypeListRequestQueryDto {
-  @ApiPropertyOptional()
-  @IsBoolean()
-  @IsOptional()
-  @Transform(booleanTransformerFactory())
-  queryTags?: boolean;
+    @ApiPropertyOptional()
+    @IsBoolean()
+    @IsOptional()
+    @Transform(booleanTransformerFactory())
+    queryTags?: boolean;
 }
 
 export class GetProblemTagTypeListResponseDto {
-  @ApiProperty()
-  tagTypes: ProblemTagTypeDetailDto[];
+    @ApiProperty()
+    tagTypes: ProblemTagTypeDetailDto[];
 }
