@@ -1,7 +1,8 @@
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
-import { FastifyAdapter, NestFastifyApplication } from "@nestjs/platform-fastify";
+import { NestExpressApplication } from "@nestjs/platform-express";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import { json } from "express";
 import getGitRepoInfo from "git-repo-info";
 import moment from "moment";
 
@@ -27,10 +28,7 @@ async function bootstrapAsync() {
     Logger.log(`Starting ${packageInfo.name} version ${appVersion}${gitRepoVersion}`, "Bootstrap");
 
     // Create nestjs app
-    const app = await NestFactory.create<NestFastifyApplication>(
-        AppModule,
-        new FastifyAdapter({ trustProxy: "loopback" }),
-    );
+    const app = await NestFactory.create<NestExpressApplication>(AppModule);
     const configService = app.get(ConfigService);
     app.setGlobalPrefix("api");
     app.useGlobalFilters(app.get(ErrorFilter), app.get(RecaptchaFilter));
@@ -43,7 +41,8 @@ async function bootstrapAsync() {
             exceptionFactory: (errors) => new ValidationErrorException(errors),
         }),
     );
-    app.useBodyParser("application/json", { bodyLimit: 1024 * 1024 * 1024 });
+    app.use(json({ limit: "50mb" }));
+    app.set("trust proxy", configService.config.server.trustProxy);
 
     // Configure CORS
     if (configService.config.security.crossOrigin.enabled) {
