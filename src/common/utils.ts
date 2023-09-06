@@ -1,5 +1,4 @@
 import crypto from "crypto";
-import process from "process";
 import util from "util";
 
 export function format(format: string, ...param: unknown[]) {
@@ -11,8 +10,12 @@ export function isEmptyValues(...values: unknown[]) {
     return values.reduce((pre, cur) => pre && (cur === undefined || (typeof cur === "number" && isNaN(cur))), true);
 }
 
+export function getEnv() {
+    return process.env;
+}
+
 export function isProduction() {
-    return process.env.NODE_ENV === "production";
+    return getEnv().NODE_ENV === "production";
 }
 
 export function sleepAsync(ms: number) {

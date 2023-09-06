@@ -1,5 +1,6 @@
 import { TypeOrmModule } from "@nestjs/typeorm";
 
+import { getEnv } from "@/common/utils";
 import { ConfigService } from "@/config/config.service";
 
 export const databaseProviders = [
@@ -12,7 +13,7 @@ export const databaseProviders = [
             password: configService.config.service.database.password,
             database: configService.config.service.database.database,
             entities: [`${__dirname}/../**/*.entity{.ts,.js}`],
-            logging: process.env.TYWZOJ_LOG_SQL !== "0",
+            logging: getEnv().TYWZOJ_LOG_SQL !== "0",
             synchronize: true,
             charset: "utf8mb4",
         }),
