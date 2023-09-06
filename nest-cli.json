@@ -1,4 +1,5 @@
 {
+  "$schema": "https://json.schemastore.org/nest-cli",
   "collection": "@nestjs/schematics",
   "sourceRoot": "src",
   "generateOptions": {
@@ -16,6 +17,7 @@
     "assets": [
       "**/*.ejs",
       "**/*.lua"
-    ]
+    ],
+    "deleteOutDir": true
   }
 }
