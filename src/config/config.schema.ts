@@ -26,10 +26,6 @@ class ServerConfig {
 
     @IsPortNumber()
     readonly port: number;
-
-    @IsArray()
-    @IsString({ each: true })
-    readonly trustProxy: string[];
 }
 
 // END ServerConfig
